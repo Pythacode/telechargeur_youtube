@@ -11,6 +11,7 @@ from tkinter.messagebox import askyesno
 import os
 import json
 from pathlib import Path
+import traceback
 
 # Détecter le système d'exploitation
 if os.name == 'nt':  # Windows
@@ -27,10 +28,12 @@ profiles_directory = "profiles" # Chemin des profiles de téléchargement
 
 
 def download() :
-    for widget in scrollable_frame.winfo_children():
+    print(len(scrollable_frame.winfo_children()))
+    nbr = 1
+    for widget in scrollable_frame.winfo_children(): #Liste les vidéos
         if isinstance(widget, Frame):
             url = None
-            while url == None :
+            while url == None : # Récupère l'url dans le label texte masqué
                 
                 for child in widget.winfo_children():
                     if isinstance(child, Label):
@@ -41,18 +44,102 @@ def download() :
             for child in widget.winfo_children():
                     
                 if isinstance(child, OptionMenu):
-                    options = json.loads(open(f'{os.path.join(profiles_directory, f'{child.cget('text')}.json')}', 'r').read())
+                    class YTDLLogger:
+                        
+                        #Logger personnalisé pour capturer et afficher les messages de yt-dlp.
+                        
+                        def debug(self, msg):
+                            # Affiche les messages de debug
+                            ProgresseLabel.config(text=msg)
+
+                        def warning(self, msg):
+                            # Affiche les avertissements
+                            ProgresseLabel.config(text=f"WARNING: {msg}")
+
+                        def error(self, msg):
+                            # Affiche les erreurs
+                            ProgresseLabel.config(text=f"ERROR: {msg}")
+                            
+                    
+                    options = json.loads(open(f'{os.path.join(profiles_directory, f'{child.cget('text')}.json')}', 'r').read()) # Récupère le profil choisi
+                    #Télécharge la vidéo
                     options["outtmpl"] = os.path.join(chemin_telechargements, options["outtmpl"])
-                    with yt_dlp.YoutubeDL(options) as ydl:
-                        ydl.download([url])
+
+                    options['quiet'] = True,  # Supprime la sortie standard (redirigée vers le logger)
+                    options['logger'] = YTDLLogger()
+                    options['extract_flat'] = True  # Utilise le logger personnalisé                    
+
+                    # Queue pour recuperer les donnes
+                    q = queue.Queue()
+                    download_finished = threading.Event()
+
+                    # Fonction qui exécute le téléchargement dans un thread séparé
+                    def process_download():
+                        try:
+                            with yt_dlp.YoutubeDL(options) as ydl:
+                                info = ydl.download([url])  # Extraire les métadonnées sans télécharger
+                            q.put(info)  # Mettre l'info dans la queue pour être récupérée par le thread principal
+                        except Exception as e:
+                            error_details = traceback.format_exc()
+                            q.put(f"Erreur : {str(e)}\nContexte :\n{error_details}")
+                            print(f"Erreur : {str(e)}\nContexte :\n{error_details}")
+                        finally:
+                            download_finished.set()
+
+                    # Fonction pour vérifier la queue et mettre à jour l'interface
+                    def check_queue():
+                        try:
+                            # Essayer de récupérer l'info sans bloquer
+                            info = q.get_nowait()  
+
+                            if isinstance(info, dict):  # Si l'info est un dictionnaire (métadonnées)
+                                ProgresseLabel.config(text=f"Dowloading complet")
+
+                            else:  # Si c'est une erreur
+                                ProgresseLabel.config(text=info)
+                            
+                            progress_windows.after(2000, progress_windows.destroy)  # Fermer après 2s
+
+                        except queue.Empty:  # Si la queue est vide, vérifier à nouveau
+                            progress_windows.after(100, check_queue)
+
+                    # Création de la fenêtre de progression
+
+                    progress_windows = Toplevel(root)
+
+                    # Barre de progression et label
+                    progressBarMetahdonne = Progressbar(progress_windows, orient=HORIZONTAL, length=400, mode='indeterminate')
+                    progressBarMetahdonne.pack(side=TOP, fill="x", expand=True)
+                    progressBarMetahdonne.start()
+
+                    ProgresseLabel = Label(progress_windows, text="Téléchargement")
+                    ProgresseLabel.pack(side=BOTTOM)
+
+                    # Démarrer le téléchargement dans un thread séparé
+                    thread = threading.Thread(target=process_download, daemon=True)
+                    thread.start()
+
+                    # Lancer la vérification périodique de la queue
+                    check_queue()
+
+                    # Boucle pour attendre la fin du téléchargement
+                    while not download_finished.is_set():
+                        check_queue()
+                        progress_windows.update()  # Met à jour l'interface
+
+                    # Fermer la fenêtre de progression après la fin
+                    progress_windows.destroy()
+        nbr += 1
 
 def select_profil() :
     profiles_files = [f[:-5] for f in os.listdir(profiles_directory) if os.path.isfile(os.path.join(profiles_directory, f)) and f.endswith('.json')]
     for widget in scrollable_frame.winfo_children():
         if isinstance(widget, Frame):
-            for child in widget.winfo_children():
+            for child in widget.winfo_children(): # Retire le boutton suprimer
                 if isinstance(child, Button):
                     child.pack_forget()
+
+            # Ajoute une selection de profil
             
             selected_profile = StringVar(root)
 
@@ -70,7 +157,7 @@ def select_profil() :
 
 def add_url(url=False, dowload_playlist=False):
 
-    #Ajoute un classe pour intercepter les logs
+    #Ajoute un classe pour intercepter les logs de yt_dlp et les afficher dans une fenetre séparer
     class YTDLLogger:
         """
         Logger personnalisé pour capturer et afficher les messages de yt-dlp.
@@ -122,6 +209,8 @@ def add_url(url=False, dowload_playlist=False):
         # Création d'un cadre pour chaque vidéo
         cadre = Frame(scrollable_frame)
         cadre.pack(fill=X, padx=10, pady=5)
+
+        # Gestion de la miniature
 
         if thumbnail_url :
 
@@ -195,7 +284,7 @@ def add_url(url=False, dowload_playlist=False):
         except Exception as e:
             q.put(f"Erreur : {str(e)}")  # Mettre l'erreur dans la queue
         finally:
-            progress_windows.after(2000, progress_windows.destroy)  # Fermer la fenêtre de progression après 2s
+            progress_windows.after(2000, progress_windows.destroy)  # Fermer la fenêtre de progression après 0s
 
     # Fonction pour vérifier la queue et mettre à jour l'interface
     def check_queue():
@@ -220,7 +309,7 @@ def add_url(url=False, dowload_playlist=False):
             else:  # Si c'est une erreur
                 ProgresseLabel.config(text=info)
             
-            progress_windows.after(2000, progress_windows.destroy)  # Fermer après 2s
+            progress_windows.after(0, progress_windows.destroy)  # Fermer après 2s
 
         except queue.Empty:  # Si la queue est vide, vérifier à nouveau
             progress_windows.after(100, check_queue)
@@ -230,7 +319,7 @@ def add_url(url=False, dowload_playlist=False):
 
     # Barre de progression et label
     progressBarMetahdonne = Progressbar(progress_windows, orient=HORIZONTAL, length=400, mode='indeterminate')
-    progressBarMetahdonne.pack(side=TOP)
+    progressBarMetahdonne.pack(side=TOP, fill="x", expand=True)
     progressBarMetahdonne.start()
 
     ProgresseLabel = Label(progress_windows, text="Téléchargement")
@@ -255,10 +344,12 @@ root.geometry("1000x500")
 EntryFrame = Frame(root)
 EntryFrame.pack(fill="x", padx=5, pady=2.5)
 
+# Entry pour les URLs
 EntryURL = Entry(EntryFrame)
 EntryURL.pack(side=LEFT, fill="x", expand=True, padx=2.5)
 EntryURL.bind("<Return>", lambda event=None: add_url())
 
+# Boutton "ajouter"
 EntryButton = Button(EntryFrame, text="Ajouter", command=add_url)
 EntryButton.pack(side=RIGHT, padx=3.5)
 
@@ -288,6 +379,7 @@ scrollable_frame.bind("<Configure>", on_frame_configure)
 # Ajuster la largeur du Canvas au redimensionnement
 MoviesCanva.bind("<Configure>", lambda e: MoviesCanva.itemconfig(canvas_frame, width=e.width))
 
+# Button suivant
 Next_button = Button(root, text="Choisir le profil de téléchargement", command=select_profil)
 Next_button.pack(side=BOTTOM, fill="x", expand=True, padx=5, pady=2.5)
 
