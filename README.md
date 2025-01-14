@@ -9,8 +9,8 @@
 #### Point à améliorer :
 
 - L'écran de téléchargement se referme entre chaque vidéo 
-- Les téléchargement sont dans le dossier téléchargement par défault de l'OS
-- Ajouter des profiles et un syteme de gestion des profils
+- Les téléchargements sont dans le dossier téléchargement par défault de l'OS
+- Ajouter des profils et un syteme de gestion des profils
 - Améliorer la fenetre de téléchargement
 - Ajouter la gestion Post-téléchargement
 
