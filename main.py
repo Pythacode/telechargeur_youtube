@@ -20,7 +20,7 @@ init(autoreset=True)
 
 class logeur() :
     def __init__(self) :
-        self.file = open(f"logs/{datetime.now().strftime("%Y_%m_%d")}.log", 'a')
+        self.file = open(f"logs/{datetime.now().strftime("%Y_%m_%d")}.log", 'a+')
         message = f"[START] [{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [Lancement de l'app]"
         self.file.write(message + '\n')
 
