@@ -8,8 +8,6 @@
 
 #### Point à améliorer :
 
-- Les téléchargement sont dans le dossier téléchargement par défault de l'OS
-- Ajouter des profiles et un syteme de gestion des profils
 - Améliorer la fenetre de téléchargement
 - Ajouter la gestion Post-téléchargement
 
