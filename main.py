@@ -12,6 +12,8 @@ import os
 import json
 from pathlib import Path
 import traceback
+import re
+from datetime import datetime
 
 # Détecter le système d'exploitation
 if os.name == 'nt':  # Windows
@@ -26,110 +28,159 @@ else:
 res_directory = 'res' # Chemin du dossier ressources statique
 profiles_directory = "profiles" # Chemin des profiles de téléchargement
 
+def log(file, message) :
+    open(file, 'a').write(f"[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] : {message}")
+
+def remove_colors(log):
+    # Expression régulière pour détecter les codes de couleur ANSI
+    color_code_pattern = r'\x1b\[[0-9;]*m'
+    # Supprimer les codes de couleur
+    cleaned_log = re.sub(color_code_pattern, '', log)
+    return cleaned_log
 
 def download() :
-    print(len(scrollable_frame.winfo_children()))
+    
+    total = len(scrollable_frame.winfo_children())
+
+    # Création de la fenêtre de progression
+    progress_windows = Toplevel(root)
+    allprogressBarDownload = Progressbar(progress_windows, orient=HORIZONTAL, length=400, mode='determinate')
+    allprogressBarDownload.pack(side=TOP, fill="x", expand=True)
+    
+    allProgresseLabel = Label(progress_windows, text=f"0 téléchargement sur {total}")
+    allProgresseLabel.pack(side=BOTTOM)
+
+    
+    progressBarDownload = Progressbar(progress_windows, orient=HORIZONTAL, length=400, mode='indeterminate')
+    progressBarDownload.pack(side=TOP, fill="x", expand=True)
+    progressBarDownload.start()
+
+    ProgresseLabel = Label(progress_windows, text="Téléchargement")
+    ProgresseLabel.pack(side=BOTTOM)
+
     nbr = 1
+
     for widget in scrollable_frame.winfo_children(): #Liste les vidéos
         if isinstance(widget, Frame):
-            url = None
-            while url == None : # Récupère l'url dans le label texte masqué
+            url, options_file = None, None
+
+            while url == None: # Récupère l'url dans le label texte masqué
                 
                 for child in widget.winfo_children():
-                    if isinstance(child, Label):
+                    if isinstance(child, Label) :
                         text = child.cget('text')
                         if text.startswith('url:') :
                             url = text[4:]
+                            break
+            print("d")
+            while options_file == None : # Récupère l'url dans le label texte masqué
+                
+                for child in widget.winfo_children():
+                    if isinstance(child, OptionMenu) :
+                            options_file = os.path.join(profiles_directory, f"{child.cget('text')}.json")
+                            break
+            
+            log("download.log", f'NEW URL: {url}\n')
 
-            for child in widget.winfo_children():
+            class YTDLLogger:
+                
+                #Logger personnalisé pour capturer et afficher les messages de yt-dlp.
+                
+                def debug(self, msg):
+                    # Affiche les messages de debug
+                    msg = remove_colors(msg)
+
+                    log("download.log", f'{msg}\n')
+
+                    if msg.startswith('[download]') :
+                        if "%" in msg :
+                            msg = msg.split(' ')
+                            for i in msg :
+                                try :
+                                    msg.remove("")
+                                except ValueError :
+                                    break
+                            progressBarDownload.config(mode='determinate')
+                            progressBarDownload['value'] = int(float(msg[1][:-1]))
+                            msg = f"{msg[1]} sur {msg[3]}. Vitesse : {msg[5]}. Fin dans {msg[7]}"
+                    else : 
+                        progressBarDownload.config(mode='indeterminate')
+
+                    ProgresseLabel.config(text=msg)
+
+                def warning(self, msg):
+                    # Affiche les avertissements
+                    ProgresseLabel.config(text=f"WARNING: {msg}")
+                    log("download.log", f'WARNING: {msg}\n')
+
+                def error(self, msg):
+                    # Affiche les erreurs
+                    ProgresseLabel.config(text=f"ERROR: {msg}")
+                    log("download.log", f'ERROR: {msg}\n')
                     
-                if isinstance(child, OptionMenu):
-                    class YTDLLogger:
-                        
-                        #Logger personnalisé pour capturer et afficher les messages de yt-dlp.
-                        
-                        def debug(self, msg):
-                            # Affiche les messages de debug
-                            ProgresseLabel.config(text=msg)
+            
+            options = json.loads(open(options_file, 'r').read()) # Récupère le profil choisi
+            options["outtmpl"] = os.path.join(chemin_telechargements, options["outtmpl"])
 
-                        def warning(self, msg):
-                            # Affiche les avertissements
-                            ProgresseLabel.config(text=f"WARNING: {msg}")
+            options['quiet'] = True,  # Supprime la sortie standard (redirigée vers le logger)
+            options['logger'] = YTDLLogger()
+            options['extract_flat'] = True  # Utilise le logger personnalisé                    
 
-                        def error(self, msg):
-                            # Affiche les erreurs
-                            ProgresseLabel.config(text=f"ERROR: {msg}")
-                            
+            # Queue pour recuperer les donnes
+            q = queue.Queue()
+            download_finished = threading.Event()
+
+            # Fonction qui exécute le téléchargement dans un thread séparé
+            def process_download():
+                try:
+                    with yt_dlp.YoutubeDL(options) as ydl:
+                        info = ydl.download([url])  # Extraire les métadonnées sans télécharger
+                    q.put(info)  # Mettre l'info dans la queue pour être récupérée par le thread principal
+                except Exception as e:
+                    error_details = traceback.format_exc()
+                    q.put(f"Erreur : {str(e)}")
+                    print(f"Erreur : {str(e)}\nContexte :\n{error_details}")
+                finally:
+                    download_finished.set()
+
+            # Fonction pour vérifier la queue et mettre à jour l'interface
+            def check_queue():
+                try:
+                    # Essayer de récupérer l'info sans bloquer
+                    info = q.get_nowait()  
+
+                    if isinstance(info, dict):  # Si l'info est un dictionnaire (métadonnées)
+                        ProgresseLabel.config(text=f"Dowloading complet")
+
+                    else:  # Si c'est une erreur
+                        ProgresseLabel.config(text=info)
                     
-                    options = json.loads(open(f'{os.path.join(profiles_directory, f'{child.cget('text')}.json')}', 'r').read()) # Récupère le profil choisi
-                    #Télécharge la vidéo
-                    options["outtmpl"] = os.path.join(chemin_telechargements, options["outtmpl"])
+                    progress_windows.after(2000, progress_windows.destroy)  # Fermer après 2s
 
-                    options['quiet'] = True,  # Supprime la sortie standard (redirigée vers le logger)
-                    options['logger'] = YTDLLogger()
-                    options['extract_flat'] = True  # Utilise le logger personnalisé                    
+                except queue.Empty:  # Si la queue est vide, vérifier à nouveau
+                    #progress_windows.update()
+                    progress_windows.after(100, check_queue)
 
-                    # Queue pour recuperer les donnes
-                    q = queue.Queue()
-                    download_finished = threading.Event()
+            # Lancer la vérification périodique de la queue
+            #check_queue()
 
-                    # Fonction qui exécute le téléchargement dans un thread séparé
-                    def process_download():
-                        try:
-                            with yt_dlp.YoutubeDL(options) as ydl:
-                                info = ydl.download([url])  # Extraire les métadonnées sans télécharger
-                            q.put(info)  # Mettre l'info dans la queue pour être récupérée par le thread principal
-                        except Exception as e:
-                            error_details = traceback.format_exc()
-                            q.put(f"Erreur : {str(e)}\nContexte :\n{error_details}")
-                            print(f"Erreur : {str(e)}\nContexte :\n{error_details}")
-                        finally:
-                            download_finished.set()
+            # Démarrer le téléchargement dans un thread séparé
+            thread = threading.Thread(target=process_download, daemon=True)
+            thread.start()
 
-                    # Fonction pour vérifier la queue et mettre à jour l'interface
-                    def check_queue():
-                        try:
-                            # Essayer de récupérer l'info sans bloquer
-                            info = q.get_nowait()  
+            # Boucle pour attendre la fin du téléchargement
+            while not download_finished.is_set():
+                check_queue()
+                #progress_windows.update()  # Met à jour l'interface
 
-                            if isinstance(info, dict):  # Si l'info est un dictionnaire (métadonnées)
-                                ProgresseLabel.config(text=f"Dowloading complet")
+            # Fermer la fenêtre de progression après la fin
+            #progress_windows.destroy()
 
-                            else:  # Si c'est une erreur
-                                ProgresseLabel.config(text=info)
-                            
-                            progress_windows.after(2000, progress_windows.destroy)  # Fermer après 2s
-
-                        except queue.Empty:  # Si la queue est vide, vérifier à nouveau
-                            progress_windows.after(100, check_queue)
-
-                    # Création de la fenêtre de progression
-
-                    progress_windows = Toplevel(root)
-
-                    # Barre de progression et label
-                    progressBarMetahdonne = Progressbar(progress_windows, orient=HORIZONTAL, length=400, mode='indeterminate')
-                    progressBarMetahdonne.pack(side=TOP, fill="x", expand=True)
-                    progressBarMetahdonne.start()
-
-                    ProgresseLabel = Label(progress_windows, text="Téléchargement")
-                    ProgresseLabel.pack(side=BOTTOM)
-
-                    # Démarrer le téléchargement dans un thread séparé
-                    thread = threading.Thread(target=process_download, daemon=True)
-                    thread.start()
-
-                    # Lancer la vérification périodique de la queue
-                    check_queue()
-
-                    # Boucle pour attendre la fin du téléchargement
-                    while not download_finished.is_set():
-                        check_queue()
-                        progress_windows.update()  # Met à jour l'interface
-
-                    # Fermer la fenêtre de progression après la fin
-                    progress_windows.destroy()
         nbr += 1
+        if allprogressBarDownload.winfo_exists():
+            allprogressBarDownload.config(value=int(100*nbr/total))
+        if allProgresseLabel.winfo_exists() :
+            allProgresseLabel.config(text=f"{nbr} téléchargement sur {total} ({100*nbr/total}%)")
 
 def select_profil() :
     profiles_files = [f[:-5] for f in os.listdir(profiles_directory) if os.path.isfile(os.path.join(profiles_directory, f)) and f.endswith('.json')]
@@ -157,6 +208,7 @@ def select_profil() :
 
 def add_url(url=False, dowload_playlist=False):
 
+
     #Ajoute un classe pour intercepter les logs de yt_dlp et les afficher dans une fenetre séparer
     class YTDLLogger:
         """
@@ -165,14 +217,17 @@ def add_url(url=False, dowload_playlist=False):
         def debug(self, msg):
             # Affiche les messages de debug
             ProgresseLabel.config(text=msg)
+            log('add_url.log', f"{msg}\n")
 
         def warning(self, msg):
             # Affiche les avertissements
             ProgresseLabel.config(text=f"WARNING: {msg}")
+            log('add_url.log', f"WARNING: {msg}\n")
 
         def error(self, msg):
             # Affiche les erreurs
             ProgresseLabel.config(text=f"ERROR: {msg}")
+            log('add_url.log', f"ERROR: {msg}\n")
 
     #Ajoute une fonction pour ajouter une vidéo a la liste
     def add_movies(info, is_playlist=False) :
@@ -259,6 +314,8 @@ def add_url(url=False, dowload_playlist=False):
         if '&list=' in url :
             if askyesno('Playlist', 'Attention, vous vous apretez à ajouter une playlist générer automatiquement par youtube, Pour garder uniquement la vidéo que vous regardiez, appuyer sur oui, si vous voulez télecharger la playlist, appuyer sur non.') :
                 url = url.split('&list=')[0]
+    
+    log('add_url.log', f"NEW URL : {url}\n")
 
     # Effacer l'entrée URL
     EntryURL.delete(0, END)
