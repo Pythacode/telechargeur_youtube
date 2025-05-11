@@ -1,6 +1,6 @@
 # Telechargeur_youtube
 
-## Version actuel (0.1)
+## Version actuel (0.11)
 
 #### Cette version parmet de :
 
@@ -8,25 +8,10 @@
 
 #### Point à améliorer :
 
-- L'écran de téléchargement se referme entre chaque vidéo 
 - Les téléchargement sont dans le dossier téléchargement par défault de l'OS
 - Ajouter des profiles et un syteme de gestion des profils
 - Améliorer la fenetre de téléchargement
 - Ajouter la gestion Post-téléchargement
-
-## Version anterieur :
-
-### Béta :
-
-#### Cette version parmet de :
-
-- Télécharger des vidéos via deux profiles : un "best_audio" et un "best_video"
-
-#### Point à améliorer :
-
-- L'application freeze peandant le téléchargement
-- Les téléchargement sont dans le dossier téléchargement par défault de l'OS
-- Code mal documenté
 
 ## Objectifs
 

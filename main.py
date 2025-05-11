@@ -14,6 +14,32 @@ from pathlib import Path
 import traceback
 import re
 from datetime import datetime
+from colorama import Fore, init
+
+init(autoreset=True)
+
+class logeur() :
+    def __init__(self) :
+        self.file = open(f"logs/{datetime.now().strftime("%Y_%m_%d")}.log", 'a')
+        message = f"[START] [{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [Lancement de l'app]"
+        self.file.write(message + '\n')
+
+    def log(self, message) :
+        message = f"[INFO] [{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] : {message}"
+        self.file.write(message + '\n')
+        print(message)
+
+    def error(self, message) :
+        message = f"[ERROR] [{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] : {message}"
+        self.file.write(message + '\n')
+        print(Fore.RED + message)
+
+    def warnig(self, message) :
+        message = f"[WARNING] [{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] : {message}"
+        self.file.write(message + '\n')
+        print(Fore.YELLOW + message)
+
+log = logeur()
 
 # Détecter le système d'exploitation
 if os.name == 'nt':  # Windows
@@ -23,13 +49,11 @@ elif os.name == 'posix':  # macOS ou Linux
     # Le dossier "Téléchargements" de l'utilisateur sur Linux ou macOS
     chemin_telechargements = Path(os.environ['HOME']) / 'Downloads'
 else:
-    chemin_telechargements = None
+    log.warnig(f'OS not nt or posix. OS : {os.name}')
+    chemin_telechargements = "./"
 
 res_directory = 'res' # Chemin du dossier ressources statique
 profiles_directory = "profiles" # Chemin des profiles de téléchargement
-
-def log(file, message) :
-    open(file, 'a').write(f"[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] : {message}")
 
 def remove_colors(log):
     # Expression régulière pour détecter les codes de couleur ANSI
@@ -41,6 +65,8 @@ def remove_colors(log):
 def download() :
     
     total = len(scrollable_frame.winfo_children())
+
+    log.log(f'START DOWNLOAD OF {total} MOVIES')
 
     # Création de la fenêtre de progression
     progress_windows = Toplevel(root)
@@ -58,7 +84,7 @@ def download() :
     ProgresseLabel = Label(progress_windows, text="Téléchargement")
     ProgresseLabel.pack(side=BOTTOM)
 
-    nbr = 1
+    nbr = 0
 
     for widget in scrollable_frame.winfo_children(): #Liste les vidéos
         if isinstance(widget, Frame):
@@ -70,9 +96,9 @@ def download() :
                     if isinstance(child, Label) :
                         text = child.cget('text')
                         if text.startswith('url:') :
-                            url = text[4:]
+                            url = text.removeprefix('url:')
                             break
-            print("d")
+            
             while options_file == None : # Récupère l'url dans le label texte masqué
                 
                 for child in widget.winfo_children():
@@ -80,7 +106,7 @@ def download() :
                             options_file = os.path.join(profiles_directory, f"{child.cget('text')}.json")
                             break
             
-            log("download.log", f'NEW URL: {url}\n')
+            log.log(f'DOWNLOAD NEW URL: {url} - {options_file}')
 
             class YTDLLogger:
                 
@@ -90,9 +116,9 @@ def download() :
                     # Affiche les messages de debug
                     msg = remove_colors(msg)
 
-                    log("download.log", f'{msg}\n')
+                    log.log(msg)
 
-                    if msg.startswith('[download]') :
+                    if msg.startswith('[download]') and not '100%' in msg :
                         if "%" in msg :
                             msg = msg.split(' ')
                             for i in msg :
@@ -100,8 +126,12 @@ def download() :
                                     msg.remove("")
                                 except ValueError :
                                     break
+
                             progressBarDownload.config(mode='determinate')
-                            progressBarDownload['value'] = int(float(msg[1][:-1]))
+
+                            print(msg)
+
+                            progressBarDownload['value'] = int(float(msg[1].removesuffix('%')))
                             msg = f"{msg[1]} sur {msg[3]}. Vitesse : {msg[5]}. Fin dans {msg[7]}"
                     else : 
                         progressBarDownload.config(mode='indeterminate')
@@ -111,20 +141,20 @@ def download() :
                 def warning(self, msg):
                     # Affiche les avertissements
                     ProgresseLabel.config(text=f"WARNING: {msg}")
-                    log("download.log", f'WARNING: {msg}\n')
+                    log.warnig(msg)
 
                 def error(self, msg):
                     # Affiche les erreurs
                     ProgresseLabel.config(text=f"ERROR: {msg}")
-                    log("download.log", f'ERROR: {msg}\n')
+                    log.error(msg)
                     
-            
+            # Récupère le profil choisi
             options = json.loads(open(options_file, 'r').read()) # Récupère le profil choisi
             options["outtmpl"] = os.path.join(chemin_telechargements, options["outtmpl"])
 
             options['quiet'] = True,  # Supprime la sortie standard (redirigée vers le logger)
-            options['logger'] = YTDLLogger()
-            options['extract_flat'] = True  # Utilise le logger personnalisé                    
+            options['logger'] = YTDLLogger() # Utilise le logger personnalisé
+            options['extract_flat'] = True                      
 
             # Queue pour recuperer les donnes
             q = queue.Queue()
@@ -157,12 +187,9 @@ def download() :
                     
                     progress_windows.after(2000, progress_windows.destroy)  # Fermer après 2s
 
-                except queue.Empty:  # Si la queue est vide, vérifier à nouveau
-                    #progress_windows.update()
-                    progress_windows.after(100, check_queue)
+                except queue.Empty:  
+                    progress_windows.update()
 
-            # Lancer la vérification périodique de la queue
-            #check_queue()
 
             # Démarrer le téléchargement dans un thread séparé
             thread = threading.Thread(target=process_download, daemon=True)
@@ -171,19 +198,21 @@ def download() :
             # Boucle pour attendre la fin du téléchargement
             while not download_finished.is_set():
                 check_queue()
-                #progress_windows.update()  # Met à jour l'interface
-
-            # Fermer la fenêtre de progression après la fin
-            #progress_windows.destroy()
+                progress_windows.update()  # Met à jour l'interface
+                root.update()  # Met à jour la fenetre principal
 
         nbr += 1
+
         if allprogressBarDownload.winfo_exists():
             allprogressBarDownload.config(value=int(100*nbr/total))
         if allProgresseLabel.winfo_exists() :
             allProgresseLabel.config(text=f"{nbr} téléchargement sur {total} ({100*nbr/total}%)")
 
+    # Fermer la fenêtre de progression après la fin
+    progress_windows.destroy()
+
 def select_profil() :
-    profiles_files = [f[:-5] for f in os.listdir(profiles_directory) if os.path.isfile(os.path.join(profiles_directory, f)) and f.endswith('.json')]
+    profiles_files = [file.removesuffix('.json') for file in os.listdir(profiles_directory) if os.path.isfile(os.path.join(profiles_directory, file)) and file.endswith('.json')]
     for widget in scrollable_frame.winfo_children():
         if isinstance(widget, Frame):
             for child in widget.winfo_children(): # Retire le boutton suprimer
@@ -217,17 +246,17 @@ def add_url(url=False, dowload_playlist=False):
         def debug(self, msg):
             # Affiche les messages de debug
             ProgresseLabel.config(text=msg)
-            log('add_url.log', f"{msg}\n")
+            log.log(f"{msg}")
 
         def warning(self, msg):
             # Affiche les avertissements
             ProgresseLabel.config(text=f"WARNING: {msg}")
-            log('add_url.log', f"WARNING: {msg}\n")
+            log.warnig(f"{msg}")
 
         def error(self, msg):
             # Affiche les erreurs
             ProgresseLabel.config(text=f"ERROR: {msg}")
-            log('add_url.log', f"ERROR: {msg}\n")
+            log.error(f"{msg}")
 
     #Ajoute une fonction pour ajouter une vidéo a la liste
     def add_movies(info, is_playlist=False) :
@@ -315,19 +344,16 @@ def add_url(url=False, dowload_playlist=False):
             if askyesno('Playlist', 'Attention, vous vous apretez à ajouter une playlist générer automatiquement par youtube, Pour garder uniquement la vidéo que vous regardiez, appuyer sur oui, si vous voulez télecharger la playlist, appuyer sur non.') :
                 url = url.split('&list=')[0]
     
-    log('add_url.log', f"NEW URL : {url}\n")
+    log.log(f"NEW URL : {url}")
 
     # Effacer l'entrée URL
     EntryURL.delete(0, END)
 
     ydl_opts = {
             'quiet': True,  # Supprime la sortie standard (redirigée vers le logger)
-            'logger': YTDLLogger(),
-            'extract_flat': True,  # Utilise le logger personnalisé
-        }
-    
-    if dowload_playlist : 
-        ydl_opts['extract_flat'] = False
+            'logger': YTDLLogger(), # Utilise le logger personnalisé
+            'skip_download' : True,
+    }
 
     # Queue pour recuperer les donnes
     q = queue.Queue()
@@ -388,9 +414,6 @@ def add_url(url=False, dowload_playlist=False):
 
     # Lancer la vérification périodique de la queue
     check_queue()
-
-    # Mainloop Tkinter
-    root.mainloop()
 
 # Fenêtre principale
 root = Tk()
