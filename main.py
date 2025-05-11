@@ -415,22 +415,24 @@ def add_url(url=False, dowload_playlist=False):
     # Lancer la vérification périodique de la queue
     check_queue()
 
+entry_color = 'white'
+
 # Fenêtre principale
 root = Tk()
 root.title("Téléchargeur YouTube")
 root.geometry("1000x500")
 
 # Cadre pour la barre d'URL
-EntryFrame = Frame(root)
+EntryFrame = Frame(root, borderwidth=2, relief=SUNKEN, bg=entry_color)
 EntryFrame.pack(fill="x", padx=5, pady=2.5)
 
 # Entry pour les URLs
-EntryURL = Entry(EntryFrame)
-EntryURL.pack(side=LEFT, fill="x", expand=True, padx=2.5)
+EntryURL = Entry(EntryFrame, relief=FLAT, bg=entry_color)
+EntryURL.pack(side=LEFT, fill="x", expand=True)
 EntryURL.bind("<Return>", lambda event=None: add_url())
 
 # Boutton "ajouter"
-EntryButton = Button(EntryFrame, text="Ajouter", command=add_url)
+EntryButton = Button(EntryFrame, text="Ajouter", command=add_url, relief=FLAT, bg=entry_color)
 EntryButton.pack(side=RIGHT, padx=3.5)
 
 # LabelFrame pour lister les vidéos
@@ -461,6 +463,6 @@ MoviesCanva.bind("<Configure>", lambda e: MoviesCanva.itemconfig(canvas_frame, w
 
 # Button suivant
 Next_button = Button(root, text="Choisir le profil de téléchargement", command=select_profil)
-Next_button.pack(side=BOTTOM, fill="x", expand=True, padx=5, pady=2.5)
+Next_button.pack(side=BOTTOM, fill="x", expand=True, padx=5)
 
 root.mainloop()
