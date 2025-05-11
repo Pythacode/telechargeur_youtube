@@ -212,6 +212,9 @@ def download() :
     progress_windows.destroy()
 
 def select_profil() :
+
+    if len(scrollable_frame.winfo_children()) == 0 : return
+
     profiles_files = [file.removesuffix('.json') for file in os.listdir(profiles_directory) if os.path.isfile(os.path.join(profiles_directory, file)) and file.endswith('.json')]
     for widget in scrollable_frame.winfo_children():
         if isinstance(widget, Frame):
