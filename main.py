@@ -4,6 +4,7 @@ import requests
 from io import BytesIO
 from tkinter import *
 from PIL import Image, ImageTk
+from tkinter.messagebox import askokcancel
 from tkinter.ttk import Progressbar
 import threading
 import queue
@@ -15,6 +16,7 @@ import traceback
 import re
 from datetime import datetime
 from colorama import Fore, init
+import webbrowser
 
 init(autoreset=True)
 
@@ -25,7 +27,7 @@ class loggeur() :
             os.makedirs("./logs")
 
         self.file = open(f"logs/{datetime.now().strftime("%Y_%m_%d")}.log", 'a+', encoding='utf-8')
-        message = f"[START] [{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [Lancement de l'app]"
+        message = f"[START] [{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}]"
         self.file.write(message + '\n')
 
     def log(self, message) :
@@ -58,6 +60,9 @@ else:
 
 res_directory = 'res' # Chemin du dossier ressources statique
 profiles_directory = "profiles" # Chemin des profiles de téléchargement
+
+def get_profiles() :
+    return [file.removesuffix('.json').replace('_', ' ') for file in os.listdir(profiles_directory) if os.path.isfile(os.path.join(profiles_directory, file)) and file.endswith('.json') and not ' ' in file]
 
 def remove_colors(log):
     # Expression régulière pour détecter les codes de couleur ANSI
@@ -112,7 +117,7 @@ def download() :
                 
                 for child in widget.winfo_children():
                     if isinstance(child, OptionMenu) :
-                            options_file = os.path.join(profiles_directory, f"{child.cget('text')}.json")
+                            options_file = os.path.join(profiles_directory, f"{child.cget('text').replace(' ', '_')}.json")
                             break
             
             log.log(f'DOWNLOAD NEW URL: {url} - {options_file}')
@@ -230,7 +235,7 @@ def select_profil() :
 
     if len(scrollable_frame.winfo_children()) == 0 : return
 
-    profiles_files = [file.removesuffix('.json') for file in os.listdir(profiles_directory) if os.path.isfile(os.path.join(profiles_directory, file)) and file.endswith('.json')]
+    profiles = get_profiles()
     for widget in scrollable_frame.winfo_children():
         if isinstance(widget, Frame):
             for child in widget.winfo_children(): # Retire le boutton suprimer
@@ -242,16 +247,15 @@ def select_profil() :
             selected_profile = StringVar(root)
 
             # Définir une valeur initiale pour la variable
-            selected_profile.set(profiles_files[0])
+            selected_profile.set(profiles[0])
 
             # Création de l'OptionMenu pour la sélection
-            option_menu = OptionMenu(widget, selected_profile, *profiles_files)
+            option_menu = OptionMenu(widget, selected_profile, *profiles)
             option_menu.pack()
 
             
     EntryFrame.pack_forget()
     Next_button.config(text="Téléchargement", command=download)
-
 
 def add_url(url=False, dowload_playlist=False):
 
@@ -433,6 +437,60 @@ def add_url(url=False, dowload_playlist=False):
     # Lancer la vérification périodique de la queue
     check_queue()
 
+def profilesEditor() :
+
+    def remove(name, cadre) :
+        if askokcancel('Confirmation', f'Voulez vous réelement suprimer le profil "{name}" ?') :
+            os.remove(f'{profiles_directory}/{name.replace(' ', '_')}.json')
+            cadre.destroy()
+
+
+    profilesRoot = Toplevel(root)
+
+    # LabelFrame pour lister les vidéos
+    ProfilesList = LabelFrame(profilesRoot, text="Vidéos à télécharger", relief=GROOVE)
+    ProfilesList.pack(fill="both", expand=True, padx=5, pady=2.5)
+
+    # Canvas pour le défilement
+    ProfilesCanva = Canvas(ProfilesList, highlightthickness=0)
+    ProfilesCanva.pack(side="left", fill="both", expand=True)
+
+    # Barre de défilement verticale
+    scrollbar = Scrollbar(ProfilesList, orient="vertical", command=ProfilesCanva.yview)
+    scrollbar.pack(side="right", fill="y")
+    ProfilesCanva.configure(yscrollcommand=scrollbar.set)
+
+    # Frame pour les vidéos à l'intérieur du Canvas
+    scrollable_frame = Frame(ProfilesCanva)
+    canvas_frame = ProfilesCanva.create_window((0, 0), window=scrollable_frame, anchor="nw")
+
+    # Ajuster la taille du Canvas en fonction du contenu
+    def on_frame_configure(event):
+        ProfilesCanva.configure(scrollregion=ProfilesCanva.bbox("all"))
+
+    scrollable_frame.bind("<Configure>", on_frame_configure)
+
+    # Ajuster la largeur du Canvas au redimensionnement
+    ProfilesCanva.bind("<Configure>", lambda e: ProfilesCanva.itemconfig(canvas_frame, width=e.width))
+    print(get_profiles())
+    for profil in get_profiles() :
+        cadre = Frame(scrollable_frame)
+        cadre.pack(fill=X, padx=10, pady=5)
+
+        # Ajouter les titres
+        texte_frame = Frame(cadre)
+        texte_frame.pack(side=LEFT, padx=10, fill=BOTH, expand=True)
+
+        label_texte1 = Label(texte_frame, text=profil, font=("Arial", 12, "bold"))
+        label_texte1.pack(anchor="w")
+
+        # Ajouter un bouton "Supprimer"
+        remove_button = Button(cadre, text="Supprimer", relief=FLAT, command=lambda p=profil, c=cadre: remove(p, c))
+        remove_button.pack(side=RIGHT)
+
+def help() :
+    webbrowser.open('https://github.com/Pythacode/telechargeur_youtube')
+
 entry_color = 'white'
 
 # Fenêtre principale
@@ -485,5 +543,20 @@ Next_button.pack(side=BOTTOM, fill="x", expand=True, padx=5)
 
 ConfirmLabel = Label(root)
 ConfirmLabel.pack_forget()
+
+# Menubar
+
+menubar = Menu(root)
+
+menu1 = Menu(menubar, tearoff=0)
+menu1.add_command(label="Modifier les profiles de téléchargement", command=profilesEditor)
+menu1.add_separator()
+menu1.add_command(label="Aide", command=help)
+menu1.add_separator()
+menu1.add_command(label="Quitter", command=root.quit)
+
+menubar.add_cascade(label="Fichier", menu=menu1)
+
+root.config(menu=menubar)
 
 root.mainloop()
