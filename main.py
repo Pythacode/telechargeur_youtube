@@ -18,9 +18,13 @@ from colorama import Fore, init
 
 init(autoreset=True)
 
-class logeur() :
+class loggeur() :
     def __init__(self) :
-        self.file = open(f"logs/{datetime.now().strftime("%Y_%m_%d")}.log", 'a+')
+
+        if not os.path.exists("./logs"):
+            os.makedirs("./logs")
+
+        self.file = open(f"logs/{datetime.now().strftime("%Y_%m_%d")}.log", 'a+', encoding='utf-8')
         message = f"[START] [{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [Lancement de l'app]"
         self.file.write(message + '\n')
 
@@ -39,18 +43,18 @@ class logeur() :
         self.file.write(message + '\n')
         print(Fore.YELLOW + message)
 
-log = logeur()
+log = loggeur()
 
 # Détecter le système d'exploitation
 if os.name == 'nt':  # Windows
     # Le dossier "Téléchargements" de l'utilisateur sur Windows
-    chemin_telechargements = Path(os.environ['USERPROFILE']) / 'Downloads'
+    download_folder = Path(os.environ['USERPROFILE']) / 'Downloads'
 elif os.name == 'posix':  # macOS ou Linux
     # Le dossier "Téléchargements" de l'utilisateur sur Linux ou macOS
-    chemin_telechargements = Path(os.environ['HOME']) / 'Downloads'
+    download_folder = Path(os.environ['HOME']) / 'Downloads'
 else:
     log.warnig(f'OS not nt or posix. OS : {os.name}')
-    chemin_telechargements = "./"
+    download_folder = "./"
 
 res_directory = 'res' # Chemin du dossier ressources statique
 profiles_directory = "profiles" # Chemin des profiles de téléchargement
@@ -70,8 +74,13 @@ def download() :
 
     # Création de la fenêtre de progression
     progress_windows = Toplevel(root)
+
+    Label(progress_windows, text="Téléchargment gloabal").pack()
+
     allprogressBarDownload = Progressbar(progress_windows, orient=HORIZONTAL, length=400, mode='determinate')
     allprogressBarDownload.pack(side=TOP, fill="x", expand=True)
+
+    Label(progress_windows, text="Téléchargment de la vidéo en cour").pack()    
     
     allProgresseLabel = Label(progress_windows, text=f"0 téléchargement sur {total}")
     allProgresseLabel.pack(side=BOTTOM)
@@ -150,7 +159,7 @@ def download() :
                     
             # Récupère le profil choisi
             options = json.loads(open(options_file, 'r').read()) # Récupère le profil choisi
-            options["outtmpl"] = os.path.join(chemin_telechargements, options["outtmpl"])
+            options["outtmpl"] = os.path.join(download_folder, options["outtmpl"])
 
             options['quiet'] = True,  # Supprime la sortie standard (redirigée vers le logger)
             options['logger'] = YTDLLogger() # Utilise le logger personnalisé
@@ -164,12 +173,12 @@ def download() :
             def process_download():
                 try:
                     with yt_dlp.YoutubeDL(options) as ydl:
-                        info = ydl.download([url])  # Extraire les métadonnées sans télécharger
+                        info = ydl.download([url])
                     q.put(info)  # Mettre l'info dans la queue pour être récupérée par le thread principal
                 except Exception as e:
                     error_details = traceback.format_exc()
                     q.put(f"Erreur : {str(e)}")
-                    print(f"Erreur : {str(e)}\nContexte :\n{error_details}")
+                    log.error(f"Erreur : {str(e)}\nContexte :\n{error_details}")
                 finally:
                     download_finished.set()
 
@@ -210,6 +219,12 @@ def download() :
 
     # Fermer la fenêtre de progression après la fin
     progress_windows.destroy()
+
+    MoviesList.pack_forget()
+    Next_button.pack_forget()
+
+    ConfirmLabel.config(text=f"Téléchargement terminé.\nLes fichiers sont dans {download_folder}")
+    ConfirmLabel.pack()
 
 def select_profil() :
 
@@ -467,5 +482,8 @@ MoviesCanva.bind("<Configure>", lambda e: MoviesCanva.itemconfig(canvas_frame, w
 # Button suivant
 Next_button = Button(root, text="Choisir le profil de téléchargement", command=select_profil)
 Next_button.pack(side=BOTTOM, fill="x", expand=True, padx=5)
+
+ConfirmLabel = Label(root)
+ConfirmLabel.pack_forget()
 
 root.mainloop()
