@@ -47,12 +47,6 @@ class loggeur() :
 
 log = loggeur()
 
-import os
-import json
-import logging
-
-log = logging.getLogger(__name__)
-
 class lang:
     def __init__(self, language='fr'):
 
