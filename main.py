@@ -20,6 +20,27 @@ import webbrowser
 
 init(autoreset=True)
 
+class I18n:
+    def __init__(self, language='fr'):
+        self.language = language
+        self.translations = {}
+        self.load_language()
+
+    def load_language(self):
+        path = os.path.join("lang", f"{self.language}.json")
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                self.translations = json.load(f)
+        except Exception as e:
+            print(f"Erreur de chargement des traductions : {e}")
+            self.translations = {}
+
+    def t(self, key, **kwargs):
+        text = self.translations.get(key, key)
+        return text.format(**kwargs)
+
+text = I18n('fr')
+
 class loggeur() :
     def __init__(self) :
 
@@ -166,7 +187,7 @@ def download() :
             options = json.loads(open(options_file, 'r').read()) # Récupère le profil choisi
             options["outtmpl"] = os.path.join(download_folder, options["outtmpl"])
 
-            options['quiet'] = True,  # Supprime la sortie standard (redirigée vers le logger)
+            options['quiet'] = True  # Supprime la sortie standard (redirigée vers le logger)
             options['logger'] = YTDLLogger() # Utilise le logger personnalisé
             options['extract_flat'] = True                      
 
@@ -495,7 +516,7 @@ entry_color = 'white'
 
 # Fenêtre principale
 root = Tk()
-root.title("Téléchargeur YouTube")
+root.title(text.t('root_title'))
 root.geometry("1000x500")
 
 # Cadre pour la barre d'URL
@@ -508,11 +529,11 @@ EntryURL.pack(side=LEFT, fill="x", expand=True)
 EntryURL.bind("<Return>", lambda event=None: add_url())
 
 # Boutton "ajouter"
-EntryButton = Button(EntryFrame, text="Ajouter", command=add_url, relief=FLAT, bg=entry_color)
+EntryButton = Button(EntryFrame, text=text.t('add_button'), command=add_url, relief=FLAT, bg=entry_color)
 EntryButton.pack(side=RIGHT, padx=3.5)
 
 # LabelFrame pour lister les vidéos
-MoviesList = LabelFrame(root, text="Vidéos à télécharger", relief=GROOVE)
+MoviesList = LabelFrame(root, text=text.t("Movie_list_label"), relief=GROOVE)
 MoviesList.pack(fill="both", expand=True, padx=5, pady=2.5)
 
 # Canvas pour le défilement
@@ -538,7 +559,7 @@ scrollable_frame.bind("<Configure>", on_frame_configure)
 MoviesCanva.bind("<Configure>", lambda e: MoviesCanva.itemconfig(canvas_frame, width=e.width))
 
 # Button suivant
-Next_button = Button(root, text="Choisir le profil de téléchargement", command=select_profil)
+Next_button = Button(root, text=text.t("next_button_choice_profil"), command=select_profil)
 Next_button.pack(side=BOTTOM, fill="x", expand=True, padx=5)
 
 ConfirmLabel = Label(root)
@@ -549,13 +570,13 @@ ConfirmLabel.pack_forget()
 menubar = Menu(root)
 
 menu1 = Menu(menubar, tearoff=0)
-menu1.add_command(label="Modifier les profiles de téléchargement", command=profilesEditor)
+menu1.add_command(label=text.t('Modify_Profils_Option'), command=profilesEditor)
 menu1.add_separator()
-menu1.add_command(label="Aide", command=help)
+menu1.add_command(label=text.t('help'), command=help)
 menu1.add_separator()
-menu1.add_command(label="Quitter", command=root.quit)
+menu1.add_command(label=text.t('quit'), command=root.quit)
 
-menubar.add_cascade(label="Fichier", menu=menu1)
+menubar.add_cascade(label=text.t("files_menubar"), menu=menu1)
 
 root.config(menu=menubar)
 
