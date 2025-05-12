@@ -20,27 +20,6 @@ import webbrowser
 
 init(autoreset=True)
 
-class I18n:
-    def __init__(self, language='fr'):
-        self.language = language
-        self.translations = {}
-        self.load_language()
-
-    def load_language(self):
-        path = os.path.join("lang", f"{self.language}.json")
-        try:
-            with open(path, "r", encoding="utf-8") as f:
-                self.translations = json.load(f)
-        except Exception as e:
-            print(f"Erreur de chargement des traductions : {e}")
-            self.translations = {}
-
-    def t(self, key, **kwargs):
-        text = self.translations.get(key, key)
-        return text.format(**kwargs)
-
-text = I18n('fr')
-
 class loggeur() :
     def __init__(self) :
 
@@ -67,6 +46,46 @@ class loggeur() :
         print(Fore.YELLOW + message)
 
 log = loggeur()
+
+import os
+import json
+import logging
+
+log = logging.getLogger(__name__)
+
+class lang:
+    def __init__(self, language='fr'):
+
+        path = os.path.join("lang", f"{language}.json")
+        try:
+            with open(os.path.join("lang", "fr.json"), "r", encoding="utf-8") as f:
+                ref = list(json.load(f).keys())
+
+            with open(path, "r", encoding="utf-8") as f:
+                translations = json.load(f)
+
+                cles = translations.keys()
+                
+                # Vérifie les clés manquantes
+                for cle in cles :
+                    if cle not in ref:
+                        log.warning(f"Unknown key '{key}' found in {self.language}.json.")
+                        self.__init__('fr')
+                        return
+                    
+                for cle in ref :
+                    if cle not in cles :
+                        log.warnig(f'Key \"{cle}\" not found in {language}.json.')
+
+                # Attribue dynamiquement les traductions à l'objet
+                for key, text in translations.items():
+                    setattr(self, key, text)
+
+        except Exception as e:
+            log.error(f"Erreur de chargement des traductions : {e}")
+            self.translations = {}
+
+t = lang('fr')
 
 # Détecter le système d'exploitation
 if os.name == 'nt':  # Windows
@@ -101,14 +120,14 @@ def download() :
     # Création de la fenêtre de progression
     progress_windows = Toplevel(root)
 
-    Label(progress_windows, text="Téléchargment gloabal").pack()
+    Label(progress_windows, text=text.global_download).pack()
 
     allprogressBarDownload = Progressbar(progress_windows, orient=HORIZONTAL, length=400, mode='determinate')
     allprogressBarDownload.pack(side=TOP, fill="x", expand=True)
 
-    Label(progress_windows, text="Téléchargment de la vidéo en cour").pack()    
+    Label(progress_windows, text=text.download_one).pack()    
     
-    allProgresseLabel = Label(progress_windows, text=f"0 téléchargement sur {total}")
+    allProgresseLabel = Label(progress_windows, text=text.download_status.format(total=total))
     allProgresseLabel.pack(side=BOTTOM)
 
     
@@ -116,7 +135,7 @@ def download() :
     progressBarDownload.pack(side=TOP, fill="x", expand=True)
     progressBarDownload.start()
 
-    ProgresseLabel = Label(progress_windows, text="Téléchargement")
+    ProgresseLabel = Label(progress_windows, text=text.downloading)
     ProgresseLabel.pack(side=BOTTOM)
 
     nbr = 0
@@ -167,7 +186,12 @@ def download() :
                             print(msg)
 
                             progressBarDownload['value'] = int(float(msg[1].removesuffix('%')))
-                            msg = f"{msg[1]} sur {msg[3]}. Vitesse : {msg[5]}. Fin dans {msg[7]}"
+                            msg = text.download_progress.format(
+                                    current=msg[1],
+                                    total=msg[3],
+                                    speed=msg[5],
+                                    eta=msg[7]
+                            )
                     else : 
                         progressBarDownload.config(mode='indeterminate')
 
@@ -203,8 +227,8 @@ def download() :
                     q.put(info)  # Mettre l'info dans la queue pour être récupérée par le thread principal
                 except Exception as e:
                     error_details = traceback.format_exc()
-                    q.put(f"Erreur : {str(e)}")
-                    log.error(f"Erreur : {str(e)}\nContexte :\n{error_details}")
+                    q.put(f"ERROR : {str(e)}")
+                    log.error(f"{str(e)}\nContexte :\n{error_details}")
                 finally:
                     download_finished.set()
 
@@ -215,7 +239,7 @@ def download() :
                     info = q.get_nowait()  
 
                     if isinstance(info, dict):  # Si l'info est un dictionnaire (métadonnées)
-                        ProgresseLabel.config(text=f"Dowloading complet")
+                        ProgresseLabel.config(text=t.complet_downloading)
 
                     else:  # Si c'est une erreur
                         ProgresseLabel.config(text=info)
@@ -241,7 +265,12 @@ def download() :
         if allprogressBarDownload.winfo_exists():
             allprogressBarDownload.config(value=int(100*nbr/total))
         if allProgresseLabel.winfo_exists() :
-            allProgresseLabel.config(text=f"{nbr} téléchargement sur {total} ({100*nbr/total}%)")
+            pourcent = 100*nbr/total
+            allProgresseLabel.config(text=t.total_downloading_progress.format(
+                nbr = nbr,
+                total=total,
+                pourcent=pourcent
+            ))
 
     # Fermer la fenêtre de progression après la fin
     progress_windows.destroy()
@@ -249,7 +278,7 @@ def download() :
     MoviesList.pack_forget()
     Next_button.pack_forget()
 
-    ConfirmLabel.config(text=f"Téléchargement terminé.\nLes fichiers sont dans {download_folder}")
+    ConfirmLabel.config(text=t.complet_downloading_confim_msg.format(download_folder=download_folder))
     ConfirmLabel.pack()
 
 def select_profil() :
@@ -276,7 +305,7 @@ def select_profil() :
 
             
     EntryFrame.pack_forget()
-    Next_button.config(text="Téléchargement", command=download)
+    Next_button.config(text=t.downloading, command=download)
 
 def add_url(url=False, dowload_playlist=False):
 
@@ -314,12 +343,12 @@ def add_url(url=False, dowload_playlist=False):
         title = info.get('title', 'Titre indisponible')
         view_count = info.get('view_count', None)
         subtitlte = (
-            info.get('artist', info.get('uploader', 'Artiste indisponible'))
+            info.get('artist', info.get('uploader', t.artist_not_found))
             + ' · '
             + f"{heures:02}:{minutes:02}:{secondes:02}"
             + ' · '
-            + ('Nombre de vues indisponible' if view_count is None else '{:,}'.format(view_count).replace(',', ' '))
-            + ' vues'
+            + (t.view_number_not_found if view_count is None else '{:,}'.format(view_count).replace(',', ' '))
+            + ' ' + t.views
         )
 
 
@@ -327,7 +356,7 @@ def add_url(url=False, dowload_playlist=False):
         
         if is_playlist :
             title = '[Playlist] ' + title
-            subtitlte += ' · ' + str(info.get('playlist_count', 'Nombre de vidéo indisponible')) + ' vidéos'
+            subtitlte += ' · ' + str(info.get('playlist_count', t.video_number_not_found)) + ' ' + t.video
             try:
                 thumbnail_url = info.get('thumbnails')[0].get('url')
             except TypeError :
@@ -377,14 +406,14 @@ def add_url(url=False, dowload_playlist=False):
         label_url.pack_forget()
 
         # Ajouter un bouton "Supprimer"
-        menu_button = Button(cadre, text="Supprimer", relief=FLAT, command=cadre.destroy)
+        menu_button = Button(cadre, text=t.delete, relief=FLAT, command=cadre.destroy)
         menu_button.pack(side=RIGHT)
     
     #Récuperer l'url si non fournie comme argument
     if not url:
         url = EntryURL.get()
         if '&list=' in url :
-            if askyesno('Playlist', 'Attention, vous vous apretez à ajouter une playlist générer automatiquement par youtube, Pour garder uniquement la vidéo que vous regardiez, appuyer sur oui, si vous voulez télecharger la playlist, appuyer sur non.') :
+            if askyesno('Playlist', t.playlist_confirm) :
                 url = url.split('&list=')[0]
     
     log.log(f"NEW URL : {url}")
@@ -419,13 +448,13 @@ def add_url(url=False, dowload_playlist=False):
             info = q.get_nowait()  
 
             if isinstance(info, dict):  # Si l'info est un dictionnaire (métadonnées)
-                ProgresseLabel.config(text=f"Dowloading complet")
+                ProgresseLabel.config(text=t.complet_downloading)
 
                 if info.get('_type', None) == 'playlist' : #Si c'est une playlist
                     if dowload_playlist : # Vérifie si l'utilisateur a déja répondus a la question suivante
                         for video in info.get('entries') :
                             add_movies(video)
-                    elif askyesno('Playlist', f"L'URL que vous avez fourni est une playlist, voulez-vous l'ajouter en tant que playlist ou en plusieurs vidéos ?\nAttention, en fonction du nombre de vidéos (ici {str(info.get('playlist_count', 'Nombre de vidéo indisponible'))}), cette opération peut prendre du temps\n\n(Oui -> playliste / Non -> Vidéos)") : #Demande a l'utilisateur si on ajoute chaque vidéo séparément
+                    elif askyesno('Playlist', t.ask_playlist) : #Demande a l'utilisateur si on ajoute chaque vidéo séparément
                         add_movies(info, True)
                     else : 
                         add_url(url, True)
@@ -448,7 +477,7 @@ def add_url(url=False, dowload_playlist=False):
     progressBarMetahdonne.pack(side=TOP, fill="x", expand=True)
     progressBarMetahdonne.start()
 
-    ProgresseLabel = Label(progress_windows, text="Téléchargement")
+    ProgresseLabel = Label(progress_windows, text=t.download)
     ProgresseLabel.pack(side=BOTTOM)
 
     # Démarrer le téléchargement dans un thread séparé
@@ -461,7 +490,7 @@ def add_url(url=False, dowload_playlist=False):
 def profilesEditor() :
 
     def remove(name, cadre) :
-        if askokcancel('Confirmation', f'Voulez vous réelement suprimer le profil "{name}" ?') :
+        if askokcancel(t.confirmation, t.remove_profils_confirmation.format(name=name)) :
             os.remove(f'{profiles_directory}/{name.replace(' ', '_')}.json')
             cadre.destroy()
 
@@ -506,7 +535,7 @@ def profilesEditor() :
         label_texte1.pack(anchor="w")
 
         # Ajouter un bouton "Supprimer"
-        remove_button = Button(cadre, text="Supprimer", relief=FLAT, command=lambda p=profil, c=cadre: remove(p, c))
+        remove_button = Button(cadre, text=t.remove, relief=FLAT, command=lambda p=profil, c=cadre: remove(p, c))
         remove_button.pack(side=RIGHT)
 
 def help() :
@@ -516,7 +545,7 @@ entry_color = 'white'
 
 # Fenêtre principale
 root = Tk()
-root.title(text.t('root_title'))
+root.title(t.root_title)
 root.geometry("1000x500")
 
 # Cadre pour la barre d'URL
@@ -529,11 +558,11 @@ EntryURL.pack(side=LEFT, fill="x", expand=True)
 EntryURL.bind("<Return>", lambda event=None: add_url())
 
 # Boutton "ajouter"
-EntryButton = Button(EntryFrame, text=text.t('add_button'), command=add_url, relief=FLAT, bg=entry_color)
+EntryButton = Button(EntryFrame, text=t.add_button, command=add_url, relief=FLAT, bg=entry_color)
 EntryButton.pack(side=RIGHT, padx=3.5)
 
 # LabelFrame pour lister les vidéos
-MoviesList = LabelFrame(root, text=text.t("Movie_list_label"), relief=GROOVE)
+MoviesList = LabelFrame(root, text=t.Movie_list_label, relief=GROOVE)
 MoviesList.pack(fill="both", expand=True, padx=5, pady=2.5)
 
 # Canvas pour le défilement
@@ -559,7 +588,7 @@ scrollable_frame.bind("<Configure>", on_frame_configure)
 MoviesCanva.bind("<Configure>", lambda e: MoviesCanva.itemconfig(canvas_frame, width=e.width))
 
 # Button suivant
-Next_button = Button(root, text=text.t("next_button_choice_profil"), command=select_profil)
+Next_button = Button(root, text=t.next_button_choice_profil, command=select_profil)
 Next_button.pack(side=BOTTOM, fill="x", expand=True, padx=5)
 
 ConfirmLabel = Label(root)
@@ -570,13 +599,13 @@ ConfirmLabel.pack_forget()
 menubar = Menu(root)
 
 menu1 = Menu(menubar, tearoff=0)
-menu1.add_command(label=text.t('Modify_Profils_Option'), command=profilesEditor)
+menu1.add_command(label=t.Modify_Profils_Option, command=profilesEditor)
 menu1.add_separator()
-menu1.add_command(label=text.t('help'), command=help)
+menu1.add_command(label=t.help, command=help)
 menu1.add_separator()
-menu1.add_command(label=text.t('quit'), command=root.quit)
+menu1.add_command(label=t.quit, command=root.quit)
 
-menubar.add_cascade(label=text.t("files_menubar"), menu=menu1)
+menubar.add_cascade(label=t.files_menubar, menu=menu1)
 
 root.config(menu=menubar)
 
