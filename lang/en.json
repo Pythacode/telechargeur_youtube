@@ -31,5 +31,5 @@
     "en": "English"
   },
   "warnig": "Warning",
-  "restart_confirm": "Warning, this action restart app"
+  "restart_confirm": "Warning, this action will restart the application"
 }

@@ -551,7 +551,7 @@ entry_color = 'white'
 
 # Fenêtre principale
 root = Tk()
-root.iconbitmap("res/icon/32.ico")
+root.iconphoto("res/icon/32.png")
 root.title(t.root_title)
 root.geometry("1000x500")
 
