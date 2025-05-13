@@ -114,14 +114,14 @@ def download() :
     # Création de la fenêtre de progression
     progress_windows = Toplevel(root)
 
-    Label(progress_windows, text=text.global_download).pack()
+    Label(progress_windows, text=t.global_download).pack()
 
     allprogressBarDownload = Progressbar(progress_windows, orient=HORIZONTAL, length=400, mode='determinate')
     allprogressBarDownload.pack(side=TOP, fill="x", expand=True)
 
-    Label(progress_windows, text=text.download_one).pack()    
+    Label(progress_windows, text=t.download_one).pack()    
     
-    allProgresseLabel = Label(progress_windows, text=text.download_status.format(total=total))
+    allProgresseLabel = Label(progress_windows, text=t.download_status.format(total=total))
     allProgresseLabel.pack(side=BOTTOM)
 
     
@@ -129,7 +129,7 @@ def download() :
     progressBarDownload.pack(side=TOP, fill="x", expand=True)
     progressBarDownload.start()
 
-    ProgresseLabel = Label(progress_windows, text=text.downloading)
+    ProgresseLabel = Label(progress_windows, text=t.downloading)
     ProgresseLabel.pack(side=BOTTOM)
 
     nbr = 0
@@ -177,10 +177,8 @@ def download() :
 
                             progressBarDownload.config(mode='determinate')
 
-                            print(msg)
-
                             progressBarDownload['value'] = int(float(msg[1].removesuffix('%')))
-                            msg = text.download_progress.format(
+                            msg = t.download_progress.format(
                                     current=msg[1],
                                     total=msg[3],
                                     speed=msg[5],
@@ -471,7 +469,7 @@ def add_url(url=False, dowload_playlist=False):
     progressBarMetahdonne.pack(side=TOP, fill="x", expand=True)
     progressBarMetahdonne.start()
 
-    ProgresseLabel = Label(progress_windows, text=t.download)
+    ProgresseLabel = Label(progress_windows, text=t.downloading)
     ProgresseLabel.pack(side=BOTTOM)
 
     # Démarrer le téléchargement dans un thread séparé
@@ -516,7 +514,7 @@ def profilesEditor() :
 
     # Ajuster la largeur du Canvas au redimensionnement
     ProfilesCanva.bind("<Configure>", lambda e: ProfilesCanva.itemconfig(canvas_frame, width=e.width))
-    print(get_profiles())
+    
     for profil in get_profiles() :
         cadre = Frame(scrollable_frame)
         cadre.pack(fill=X, padx=10, pady=5)
@@ -529,7 +527,7 @@ def profilesEditor() :
         label_texte1.pack(anchor="w")
 
         # Ajouter un bouton "Supprimer"
-        remove_button = Button(cadre, text=t.remove, relief=FLAT, command=lambda p=profil, c=cadre: remove(p, c))
+        remove_button = Button(cadre, text=t.delete, relief=FLAT, command=lambda p=profil, c=cadre: remove(p, c))
         remove_button.pack(side=RIGHT)
 
 def help() :
