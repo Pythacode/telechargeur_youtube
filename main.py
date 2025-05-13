@@ -8,7 +8,7 @@ from tkinter.messagebox import askokcancel
 from tkinter.ttk import Progressbar
 import threading
 import queue
-from tkinter.messagebox import askyesno
+from tkinter.messagebox import askyesno, showwarning
 import os
 import json
 from pathlib import Path
@@ -17,8 +17,14 @@ import re
 from datetime import datetime
 from colorama import Fore, init
 import webbrowser
+import sys
+import argparse
 
-init(autoreset=True)
+parser = argparse.ArgumentParser()
+parser.add_argument("--lang", default=None)
+args = parser.parse_args()
+
+language = args.lang if args.lang else 'fr'
 
 class loggeur() :
     def __init__(self) :
@@ -47,40 +53,6 @@ class loggeur() :
 
 log = loggeur()
 
-class lang:
-    def __init__(self, language='fr'):
-
-        path = os.path.join("lang", f"{language}.json")
-        try:
-            with open(os.path.join("lang", "fr.json"), "r", encoding="utf-8") as f:
-                ref = list(json.load(f).keys())
-
-            with open(path, "r", encoding="utf-8") as f:
-                translations = json.load(f)
-
-                cles = translations.keys()
-                
-                # Vérifie les clés manquantes
-                for cle in cles :
-                    if cle not in ref:
-                        log.warning(f"Unknown key '{key}' found in {self.language}.json.")
-                        self.__init__('fr')
-                        return
-                    
-                for cle in ref :
-                    if cle not in cles :
-                        log.warnig(f'Key \"{cle}\" not found in {language}.json.')
-
-                # Attribue dynamiquement les traductions à l'objet
-                for key, text in translations.items():
-                    setattr(self, key, text)
-
-        except Exception as e:
-            log.error(f"Erreur de chargement des traductions : {e}")
-            self.translations = {}
-
-t = lang('fr')
-
 # Détecter le système d'exploitation
 if os.name == 'nt':  # Windows
     # Le dossier "Téléchargements" de l'utilisateur sur Windows
@@ -92,8 +64,51 @@ else:
     log.warnig(f'OS not nt or posix. OS : {os.name}')
     download_folder = "./"
 
+init(autoreset=True)
 res_directory = 'res' # Chemin du dossier ressources statique
 profiles_directory = "profiles" # Chemin des profiles de téléchargement
+lang_directory = "lang"
+
+class lang:
+    def __init__(self, language='fr'):
+
+        log.log(f'Language : {language}')
+
+        path = os.path.join(lang_directory, f"{language}.json")
+        try:
+            with open(os.path.join(lang_directory, "fr.json"), "r", encoding="utf-8") as f:
+                ref = list(json.load(f).keys())
+
+            with open(path, "r", encoding="utf-8") as f:
+                translations = json.load(f)
+
+                cles = translations.keys()     
+                    
+                for cle in ref :
+                    if cle not in cles :
+                        log.warnig(f'Key \"{cle}\" not found in {language}.json.')
+                        return self.__init__()
+
+                # Attribue dynamiquement les traductions à l'objet
+                for key, text in translations.items():
+                    setattr(self, key, text)
+
+        except Exception as e:
+            log.error(f"Erreur de chargement des traductions : {e}")
+            return self.__init__()
+    
+    def refresh(self, lang) :
+        showwarning(t.warnig, t.restart_confirm)
+        self.__init__(lang)
+        root.update()
+        # Détruit la fenêtre Tkinter
+        root.destroy()
+
+        # Redémarre le script Python
+        python = sys.executable
+        os.execl(python, python, *sys.argv, f'--lang {lang}')
+
+t = lang(language)
 
 def get_profiles() :
     return [file.removesuffix('.json').replace('_', ' ') for file in os.listdir(profiles_directory) if os.path.isfile(os.path.join(profiles_directory, file)) and file.endswith('.json') and not ' ' in file]
@@ -446,7 +461,7 @@ def add_url(url=False, dowload_playlist=False):
                     if dowload_playlist : # Vérifie si l'utilisateur a déja répondus a la question suivante
                         for video in info.get('entries') :
                             add_movies(video)
-                    elif askyesno('Playlist', t.ask_playlist) : #Demande a l'utilisateur si on ajoute chaque vidéo séparément
+                    elif askyesno('Playlist', t.ask_playlist.format(nbr_video=str(info.get('playlist_count', 'Nombre de vidéo indisponible')))) : #Demande a l'utilisateur si on ajoute chaque vidéo séparément
                         add_movies(info, True)
                     else : 
                         add_url(url, True)
@@ -489,8 +504,7 @@ def profilesEditor() :
 
     profilesRoot = Toplevel(root)
 
-    # LabelFrame pour lister les vidéos
-    ProfilesList = LabelFrame(profilesRoot, text="Vidéos à télécharger", relief=GROOVE)
+    ProfilesList = Frame(profilesRoot, text="Vidéos à télécharger", relief=GROOVE)
     ProfilesList.pack(fill="both", expand=True, padx=5, pady=2.5)
 
     # Canvas pour le défilement
@@ -590,14 +604,26 @@ ConfirmLabel.pack_forget()
 
 menubar = Menu(root)
 
-menu1 = Menu(menubar, tearoff=0)
-menu1.add_command(label=t.Modify_Profils_Option, command=profilesEditor)
-menu1.add_separator()
-menu1.add_command(label=t.help, command=help)
-menu1.add_separator()
-menu1.add_command(label=t.quit, command=root.quit)
+file_menu = Menu(menubar, tearoff=0)
 
-menubar.add_cascade(label=t.files_menubar, menu=menu1)
+file_menu.add_command(label=t.Modify_Profils_Option, command=profilesEditor)
+file_menu.add_separator()
+file_menu.add_command(label=t.help, command=help)
+file_menu.add_separator()
+file_menu.add_command(label=t.quit, command=root.quit)
+
+menubar.add_cascade(label=t.files_menubar, menu=file_menu)
+
+language_menu = Menu(menubar, tearoff=0)
+
+language = [i.removesuffix('.json') for i in os.listdir(lang_directory) if i.endswith('.json')]
+
+for lang in language :
+    if lang :
+        lang_name = t.languages_list.get(lang)
+        language_menu.add_command(label=lang_name, command=lambda l=lang: t.refresh(l))
+
+menubar.add_cascade(label=t.languages, menu=language_menu)
 
 root.config(menu=menubar)
 
