@@ -26,13 +26,26 @@ args = parser.parse_args()
 
 language = args.lang if args.lang else 'fr'
 
+# Détecter le système d'exploitation
+if os.name == 'nt':  # Windows
+    download_folder = Path(os.environ['USERPROFILE']) / 'Downloads'
+    appData_folder = Path(os.environ['APPDATA']) / 'telechargeur_youtube'
+elif os.name == 'posix':  # macOS ou Linux
+    download_folder = Path(os.environ['HOME']) / 'Downloads'
+    appData_folder = Path(os.environ['HOME']) / '.local' / 'share' / 'MonApp'
+else:
+    download_folder = Path(".")
+    appData_folder = Path(".")
+
 class loggeur() :
     def __init__(self) :
 
-        if not os.path.exists("./logs"):
-            os.makedirs("./logs")
+        log_file = os.path.join(appData_folder, "/logs")
 
-        self.file = open(f"logs/{datetime.now().strftime("%Y_%m_%d")}.log", 'a+', encoding='utf-8')
+        if not os.path.exists(log_file):
+            os.makedirs(log_file)
+
+        self.file = open(os.path.join(log_file, f"{datetime.now().strftime('%Y_%m_%d')}.log"), 'a+', encoding='utf-8')
         message = f"[START] [{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}]"
         self.file.write(message + '\n')
 
@@ -53,21 +66,11 @@ class loggeur() :
 
 log = loggeur()
 
-# Détecter le système d'exploitation
-if os.name == 'nt':  # Windows
-    # Le dossier "Téléchargements" de l'utilisateur sur Windows
-    download_folder = Path(os.environ['USERPROFILE']) / 'Downloads'
-elif os.name == 'posix':  # macOS ou Linux
-    # Le dossier "Téléchargements" de l'utilisateur sur Linux ou macOS
-    download_folder = Path(os.environ['HOME']) / 'Downloads'
-else:
-    log.warnig(f'OS not nt or posix. OS : {os.name}')
-    download_folder = "./"
 
 init(autoreset=True)
 res_directory = 'res' # Chemin du dossier ressources statique
-profiles_directory = "profiles" # Chemin des profiles de téléchargement
-lang_directory = "lang"
+profiles_directory = os.path.join(appData_folder, "profiles") # Chemin des profiles de téléchargement
+lang_directory = os.path.join(appData_folder, "lang")
 
 class lang:
     def __init__(self, language='fr'):
