@@ -1,22 +1,8 @@
-# Telechargeur_youtube
+# ![logo_affichage](https://github.com/user-attachments/assets/ef984914-7e06-4a17-88af-2c2e0b46bc80) Telechargeur youtube
 
-## Version actuel (0.11)
 
-#### Cette version parmet de :
 
-- Télécharger des vidéos via deux profiles : un "best_audio" et un "best_video"
 
-#### Point à améliorer :
+## Sommaire
 
-- Améliorer la fenetre de téléchargement
-- Ajouter la gestion Post-téléchargement
-
-## Objectifs
-
-Un téléchargeur Youtube en python utilisant Tkinter et yt_dlp
-
-À terme, l’application doit permettre :
-- Créer des profils de téléchargement (Qualité, format, chemin de sortie...) et choisir pour chaque media quel profile utiliser
-- Créer des profils de métadonnée et choisir pour chaque media quel profile utiliser
-- Rechercher des vidéo directement depuis l'app
-- Ajouter des vidéo et des playlist depuis une URL
+- En cours de rédaction
