@@ -4,11 +4,10 @@ import requests
 from io import BytesIO
 from tkinter import *
 from PIL import Image, ImageTk
-from tkinter.messagebox import askokcancel
 from tkinter.ttk import Progressbar
 import threading
 import queue
-from tkinter.messagebox import askyesno, showwarning
+from tkinter.messagebox import askyesno, showwarning, askokcancel
 import os
 import json
 from pathlib import Path
@@ -18,21 +17,24 @@ from datetime import datetime
 from colorama import Fore, init
 import webbrowser
 import sys
-import argparse
+import subprocess
+import locale
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--lang", default=None)
-args = parser.parse_args()
+# Ajoute des modules pour faciliter la detection par pyinstaler
 
-language = args.lang if args.lang else 'fr'
+import pyexpat
+import unicodedata
+print(unicodedata.name('é'))
+
+app_name = "Youtube_downloader"
 
 # Détecter le système d'exploitation
 if os.name == 'nt':  # Windows
     download_folder = Path(os.environ['USERPROFILE']) / 'Downloads'
-    appData_folder = Path(os.environ['APPDATA']) / 'telechargeur_youtube'
+    appData_folder = Path(os.getenv('APPDATA')) / app_name
 elif os.name == 'posix':  # macOS ou Linux
     download_folder = Path(os.environ['HOME']) / 'Downloads'
-    appData_folder = Path(os.environ['HOME']) / '.local' / 'share' / 'MonApp'
+    appData_folder = Path(os.environ['HOME']) / '.local' / 'share' / app_name
 else:
     download_folder = Path(".")
     appData_folder = Path(".")
@@ -40,7 +42,7 @@ else:
 class loggeur() :
     def __init__(self) :
 
-        log_file = os.path.join(appData_folder, "/logs")
+        log_file = os.path.join(appData_folder, "logs")
 
         if not os.path.exists(log_file):
             os.makedirs(log_file)
@@ -66,20 +68,43 @@ class loggeur() :
 
 log = loggeur()
 
-
 init(autoreset=True)
-res_directory = 'res' # Chemin du dossier ressources statique
-profiles_directory = os.path.join(appData_folder, "profiles") # Chemin des profiles de téléchargement
-lang_directory = os.path.join(appData_folder, "lang")
+
+if getattr(sys, 'frozen', False):
+    # Cas de l'exécutable
+    res_directory = os.path.join(os.path.dirname(sys.executable), 'res') # Chemin du dossier ressources statique
+    profiles_directory = os.path.join(appData_folder, "profiles") # Chemin des profiles de téléchargement
+    lang_directory = os.path.join(res_directory, "lang")
+else:
+    appData_folder = './'
+    res_directory = 'res' # Chemin du dossier ressources statique
+    profiles_directory = "profiles" # Chemin des profiles de téléchargement
+    lang_directory = os.path.join(res_directory, "lang")
+
+try :
+    with open(os.path.join(appData_folder, 'config.json'), 'r', encoding='utf-8') as f:
+        configuration = json.load(f)
+except :
+    configuration = {}
+
+def updtadeConfig(key, value) :
+    configuration[key] = value
+    with open(os.path.join(appData_folder, 'config.json'), 'w', encoding='utf-8') as f:
+        json.dump(configuration, f, ensure_ascii=False, indent=4)
+
+
+languages = ['fr_FR', 'en_EN']
+
+language = configuration.get('lang', locale.getlocale()[0] if locale.getlocale()[0] in languages else 'en_EN')
 
 class lang:
-    def __init__(self, language='fr'):
+    def __init__(self, language='en_EN'):
 
         log.log(f'Language : {language}')
 
-        path = os.path.join(lang_directory, f"{language}.json")
+        path = os.path.join(lang_directory, f"{language}.json") if language in languages else 'en_EN'
         try:
-            with open(os.path.join(lang_directory, "fr.json"), "r", encoding="utf-8") as f:
+            with open(os.path.join(lang_directory, "fr_FR.json"), "r", encoding="utf-8") as f:
                 ref = list(json.load(f).keys())
 
             with open(path, "r", encoding="utf-8") as f:
@@ -102,19 +127,27 @@ class lang:
     
     def refresh(self, lang) :
         showwarning(t.warnig, t.restart_confirm)
+
+        updtadeConfig('lang', lang)
+
         self.__init__(lang)
         root.update()
         # Détruit la fenêtre Tkinter
         root.destroy()
 
         # Redémarre le script Python
-        python = sys.executable
-        os.execl(python, python, *sys.argv, f'--lang {lang}')
+        log.log([sys.executable] + sys.argv)
+        subprocess.Popen([sys.executable] + sys.argv, close_fds=True)
+        sys.exit()
 
 t = lang(language)
 
 def get_profiles() :
-    return [file.removesuffix('.json').replace('_', ' ') for file in os.listdir(profiles_directory) if os.path.isfile(os.path.join(profiles_directory, file)) and file.endswith('.json') and not ' ' in file]
+    try :
+        log.log(profiles_directory)
+        return [file.removesuffix('.json').replace('_', ' ') for file in os.listdir(profiles_directory) if os.path.isfile(os.path.join(profiles_directory, file)) and file.endswith('.json') and not ' ' in file]
+    except Exception as e :
+        log.error(e + traceback.format_exc())
 
 def remove_colors(log):
     # Expression régulière pour détecter les codes de couleur ANSI
@@ -498,54 +531,57 @@ def add_url(url=False, dowload_playlist=False):
     check_queue()
 
 def profilesEditor() :
+    try :
+        def remove(name, cadre) :
+            if askokcancel(t.confirmation, t.remove_profils_confirmation.format(name=name)) :
+                os.remove(f'{profiles_directory}/{name.replace(' ', '_')}.json')
+                cadre.destroy()
 
-    def remove(name, cadre) :
-        if askokcancel(t.confirmation, t.remove_profils_confirmation.format(name=name)) :
-            os.remove(f'{profiles_directory}/{name.replace(' ', '_')}.json')
-            cadre.destroy()
 
+        profilesRoot = Toplevel(root)
 
-    profilesRoot = Toplevel(root)
+        ProfilesList = Frame(profilesRoot, relief=GROOVE)
+        ProfilesList.pack(fill="both", expand=True, padx=5, pady=2.5)
 
-    ProfilesList = Frame(profilesRoot, text="Vidéos à télécharger", relief=GROOVE)
-    ProfilesList.pack(fill="both", expand=True, padx=5, pady=2.5)
+        # Canvas pour le défilement
+        ProfilesCanva = Canvas(ProfilesList, highlightthickness=0)
+        ProfilesCanva.pack(side="left", fill="both", expand=True)
 
-    # Canvas pour le défilement
-    ProfilesCanva = Canvas(ProfilesList, highlightthickness=0)
-    ProfilesCanva.pack(side="left", fill="both", expand=True)
+        # Barre de défilement verticale
+        scrollbar = Scrollbar(ProfilesList, orient="vertical", command=ProfilesCanva.yview)
+        scrollbar.pack(side="right", fill="y")
+        ProfilesCanva.configure(yscrollcommand=scrollbar.set)
 
-    # Barre de défilement verticale
-    scrollbar = Scrollbar(ProfilesList, orient="vertical", command=ProfilesCanva.yview)
-    scrollbar.pack(side="right", fill="y")
-    ProfilesCanva.configure(yscrollcommand=scrollbar.set)
+        # Frame pour les vidéos à l'intérieur du Canvas
+        scrollable_frame = Frame(ProfilesCanva)
+        canvas_frame = ProfilesCanva.create_window((0, 0), window=scrollable_frame, anchor="nw")
 
-    # Frame pour les vidéos à l'intérieur du Canvas
-    scrollable_frame = Frame(ProfilesCanva)
-    canvas_frame = ProfilesCanva.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        # Ajuster la taille du Canvas en fonction du contenu
+        def on_frame_configure(event):
+            ProfilesCanva.configure(scrollregion=ProfilesCanva.bbox("all"))
 
-    # Ajuster la taille du Canvas en fonction du contenu
-    def on_frame_configure(event):
-        ProfilesCanva.configure(scrollregion=ProfilesCanva.bbox("all"))
+        scrollable_frame.bind("<Configure>", on_frame_configure)
 
-    scrollable_frame.bind("<Configure>", on_frame_configure)
+        # Ajuster la largeur du Canvas au redimensionnement
+        ProfilesCanva.bind("<Configure>", lambda e: ProfilesCanva.itemconfig(canvas_frame, width=e.width))
+        
+        for profil in get_profiles() :
+            cadre = Frame(scrollable_frame)
+            cadre.pack(fill=X, padx=10, pady=5)
 
-    # Ajuster la largeur du Canvas au redimensionnement
-    ProfilesCanva.bind("<Configure>", lambda e: ProfilesCanva.itemconfig(canvas_frame, width=e.width))
-    
-    for profil in get_profiles() :
-        cadre = Frame(scrollable_frame)
-        cadre.pack(fill=X, padx=10, pady=5)
+            # Ajouter les titres
+            texte_frame = Frame(cadre)
+            texte_frame.pack(side=LEFT, padx=10, fill=BOTH, expand=True)
 
-        # Ajouter les titres
-        texte_frame = Frame(cadre)
-        texte_frame.pack(side=LEFT, padx=10, fill=BOTH, expand=True)
+            label_texte1 = Label(texte_frame, text=profil, font=("Arial", 12, "bold"))
+            label_texte1.pack(anchor="w")
 
-        label_texte1 = Label(texte_frame, text=profil, font=("Arial", 12, "bold"))
-        label_texte1.pack(anchor="w")
-
-        # Ajouter un bouton "Supprimer"
-        remove_button = Button(cadre, text=t.delete, relief=FLAT, command=lambda p=profil, c=cadre: remove(p, c))
-        remove_button.pack(side=RIGHT)
+            # Ajouter un bouton "Supprimer"
+            remove_button = Button(cadre, text=t.delete, relief=FLAT, command=lambda p=profil, c=cadre: remove(p, c))
+            remove_button.pack(side=RIGHT)
+        
+    except Exception as e :
+        log.error(e + traceback.format_exc())
 
 def help() :
     webbrowser.open('https://github.com/Pythacode/telechargeur_youtube')
@@ -555,7 +591,7 @@ entry_color = 'white'
 # Fenêtre principale
 root = Tk()
 
-icon = PhotoImage(file="res/icon/32.png")
+icon = PhotoImage(file=Path(res_directory) / "icon" / "32.png")
 root.iconphoto(True, icon)
 
 root.title(t.root_title)
@@ -608,7 +644,6 @@ ConfirmLabel = Label(root)
 ConfirmLabel.pack_forget()
 
 # Menubar
-
 menubar = Menu(root)
 
 file_menu = Menu(menubar, tearoff=0)
