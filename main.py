@@ -7,7 +7,7 @@ from PIL import Image, ImageTk
 from tkinter.ttk import Progressbar
 import threading
 import queue
-from tkinter.messagebox import askyesno, showwarning, askokcancel
+from tkinter.messagebox import askyesno, showwarning, askokcancel, showinfo
 import os
 import json
 from pathlib import Path
@@ -24,7 +24,6 @@ import locale
 
 import pyexpat
 import unicodedata
-print(unicodedata.name('é'))
 
 app_name = "Youtube_downloader"
 
@@ -126,7 +125,7 @@ class lang:
             return self.__init__()
     
     def refresh(self, lang) :
-        showwarning(t.warnig, t.restart_confirm)
+        showinfo(t.info, t.restart_info)
 
         updtadeConfig('lang', lang)
 
@@ -136,8 +135,6 @@ class lang:
         root.destroy()
 
         # Redémarre le script Python
-        log.log([sys.executable] + sys.argv)
-        subprocess.Popen([sys.executable] + sys.argv, close_fds=True)
         sys.exit()
 
 t = lang(language)
