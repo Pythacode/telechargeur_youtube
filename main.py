@@ -146,7 +146,17 @@ def download() :
     log.log(f'START DOWNLOAD OF {total} MOVIES')
 
     # Création de la fenêtre de progression
-    progress_windows = Toplevel(root)
+
+    Next_button.destroy()
+
+    for widget in scrollable_frame.winfo_children():
+        if isinstance(widget, Frame):
+            for child in widget.winfo_children():
+                if isinstance(child, OptionMenu):
+                    print(child)
+                    child.pack_forget()
+
+    progress_windows = Frame(root)
 
     Label(progress_windows, text=t.global_download).pack()
 
@@ -165,6 +175,8 @@ def download() :
 
     ProgresseLabel = Label(progress_windows, text=t.downloading)
     ProgresseLabel.pack(side=BOTTOM)
+
+    progress_windows.pack()
 
     nbr = 0
 
@@ -270,10 +282,10 @@ def download() :
                     else:  # Si c'est une erreur
                         ProgresseLabel.config(text=info)
                     
-                    progress_windows.after(2000, progress_windows.destroy)  # Fermer après 2s
+                    
 
                 except queue.Empty:  
-                    progress_windows.update()
+                    root.update()
 
 
             # Démarrer le téléchargement dans un thread séparé
@@ -283,8 +295,7 @@ def download() :
             # Boucle pour attendre la fin du téléchargement
             while not download_finished.is_set():
                 check_queue()
-                progress_windows.update()  # Met à jour l'interface
-                root.update()  # Met à jour la fenetre principal
+                root.update()  # Met à jour l'interface
 
         nbr += 1
 
@@ -300,9 +311,7 @@ def download() :
 
     # Fermer la fenêtre de progression après la fin
     progress_windows.destroy()
-
-    MoviesList.pack_forget()
-    Next_button.pack_forget()
+    MoviesList.destroy()
 
     ConfirmLabel.config(text=t.complet_downloading_confim_msg.format(download_folder=download_folder))
     ConfirmLabel.pack()
@@ -316,7 +325,7 @@ def select_profil() :
         if isinstance(widget, Frame):
             for child in widget.winfo_children(): # Retire le boutton suprimer
                 if isinstance(child, Button):
-                    child.pack_forget()
+                    child.destroy()
 
             # Ajoute une selection de profil
             
@@ -567,7 +576,7 @@ def profilesEditor() :
         log.error(e + traceback.format_exc())
 
 def help() :
-    webbrowser.open('https://github.com/Pythacode/telechargeur_youtube?tab=readme-ov-file#fonctionnement')
+    webbrowser.open('https://github.com/Pythacode/telechargeur_youtube')
 
 entry_color = 'white'
 
