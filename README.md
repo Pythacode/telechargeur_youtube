@@ -5,12 +5,12 @@
 
 ## Sommaire
 
-- [Instalation](https://github.com/Pythacode/telechargeur_youtube?tab=readme-ov-file#instalation)
+- [installation](https://github.com/Pythacode/telechargeur_youtube?tab=readme-ov-file#instalation)
 - [Fonctionnement](https://github.com/Pythacode/telechargeur_youtube?tab=readme-ov-file#fonctionnement)
 - Explication du code : En cours de rédaction
 - [Crédits](https://github.com/Pythacode/telechargeur_youtube?tab=readme-ov-file#credits)
 
-## Instalation
+## installation
 
 Pour installer l'app, vous pouvez [télécharger un executable depuis les releases](https://github.com/Pythacode/telechargeur_youtube/releases), ou [télécharger le code source](https://github.com/Pythacode/telechargeur_youtube/archive/refs/heads/main.zip) puis intaller les dépendance :
 
