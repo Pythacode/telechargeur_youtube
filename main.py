@@ -567,7 +567,7 @@ def profilesEditor() :
         log.error(e + traceback.format_exc())
 
 def help() :
-    webbrowser.open('https://github.com/Pythacode/telechargeur_youtube')
+    webbrowser.open('https://github.com/Pythacode/telechargeur_youtube?tab=readme-ov-file#fonctionnement')
 
 entry_color = 'white'
 
