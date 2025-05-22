@@ -28,7 +28,8 @@
   "languages": "Langues",
   "languages_list" :{
     "fr_FR": "Français",
-    "en_EN": "Anglais"
+    "en_EN": "Anglais",
+    "de_DE": "Allemand"
   },
   "warnig": "Attention",
   "restart_confirm": "Attention, cette action vas redemarer l'aplication"

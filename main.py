@@ -24,7 +24,6 @@ import locale
 
 import pyexpat
 import unicodedata
-print(unicodedata.name('é'))
 
 app_name = "Youtube_downloader"
 
@@ -93,7 +92,7 @@ def updtadeConfig(key, value) :
         json.dump(configuration, f, ensure_ascii=False, indent=4)
 
 
-languages = ['fr_FR', 'en_EN']
+languages = ['fr_FR', 'en_EN', 'de_DE']
 
 language = configuration.get('lang', locale.getlocale()[0] if locale.getlocale()[0] in languages else 'en_EN')
 
