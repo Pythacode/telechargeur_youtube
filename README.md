@@ -8,6 +8,7 @@
 - [Instalation](https://github.com/Pythacode/telechargeur_youtube?tab=readme-ov-file#instalation)
 - [Fonctionnement](https://github.com/Pythacode/telechargeur_youtube?tab=readme-ov-file#fonctionnement)
 - En cours de rédaction
+- [Crédits](https://github.com/Pythacode/telechargeur_youtube?tab=readme-ov-file#credits)
 
 ## Instalation
 
@@ -62,3 +63,17 @@ Langues diponible :
 ### Outils d'édition de profils
 
 Pour l'instant, cet outils permet seulement de suprimer les profils.
+
+## Crédits
+
+Code : Nathanaëlle [@Pythacode]
+
+Traduction :
+- Français : Nathanaëlle [@Pythacode]
+- Allemand : Cyanne [@Art34mis]
+- Anglais : Gregrenier
+
+#
+__© Tous droits réservés 2025__
+
+*Made by Nath with* :heart:
