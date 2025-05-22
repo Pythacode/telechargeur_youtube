@@ -66,11 +66,11 @@ Pour l'instant, cet outils permet seulement de suprimer les profils.
 
 ## Crédits
 
-Code : Nathanaëlle [@Pythacode]
+Code : Nathanaëlle [@Pythacode](https://github.com/Pythacode/)
 
 Traduction :
-- Français : Nathanaëlle [@Pythacode]
-- Allemand : Cyanne [@Art34mis]
+- Français : Nathanaëlle [@Pythacode](https://github.com/Pythacode/)
+- Allemand : Cyanne [@Art34mis](https://github.com/Art34mis/)
 - Anglais : Gregrenier
 
 #
