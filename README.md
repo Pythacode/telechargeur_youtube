@@ -8,7 +8,7 @@
 - [installation](https://github.com/Pythacode/telechargeur_youtube?tab=readme-ov-file#instalation)
 - [Fonctionnement](https://github.com/Pythacode/telechargeur_youtube?tab=readme-ov-file#fonctionnement)
 - Explication du code : En cours de rédaction
-- [Crédits](https://github.com/Pythacode/telechargeur_youtube?tab=readme-ov-file#credits)
+- [Crédits](https://github.com/Pythacode/telechargeur_youtube?tab=readme-ov-file#crédits)
 
 ## installation
 
