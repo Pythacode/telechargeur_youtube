@@ -121,16 +121,7 @@ class lang:
     
     def refresh(self, lang) :
         showinfo(t.info, t.restart_info)
-
         updtadeConfig('lang', lang)
-
-        self.__init__(lang)
-        root.update()
-        # Détruit la fenêtre Tkinter
-        root.destroy()
-
-        # Redémarre le script Python
-        sys.exit()
 
 t = lang(language)
 
