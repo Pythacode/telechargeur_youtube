@@ -653,7 +653,7 @@ language_menu = Menu(menubar, tearoff=0)
 language = [i.removesuffix('.json') for i in os.listdir(lang_directory) if i.endswith('.json')]
 
 for lang in language :
-    if lang :
+    if lang in languages :
         lang_name = t.languages_list.get(lang)
         language_menu.add_command(label=lang_name, command=lambda l=lang: t.refresh(l))
 
