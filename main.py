@@ -7,7 +7,7 @@ from PIL import Image, ImageTk
 from tkinter.ttk import Progressbar
 import threading
 import queue
-from tkinter.messagebox import askyesno, showwarning, askokcancel
+from tkinter.messagebox import askyesno, showwarning, askokcancel, showinfo
 import os
 import json
 from pathlib import Path
@@ -19,11 +19,6 @@ import webbrowser
 import sys
 import subprocess
 import locale
-
-# Ajoute des modules pour faciliter la detection par pyinstaler
-
-import pyexpat
-import unicodedata
 
 app_name = "Youtube_downloader"
 
@@ -125,7 +120,7 @@ class lang:
             return self.__init__()
     
     def refresh(self, lang) :
-        showwarning(t.warnig, t.restart_confirm)
+        showinfo(t.info, t.restart_info)
 
         updtadeConfig('lang', lang)
 
@@ -135,8 +130,6 @@ class lang:
         root.destroy()
 
         # Redémarre le script Python
-        log.log([sys.executable] + sys.argv)
-        subprocess.Popen([sys.executable] + sys.argv, close_fds=True)
         sys.exit()
 
 t = lang(language)
@@ -660,7 +653,7 @@ language_menu = Menu(menubar, tearoff=0)
 language = [i.removesuffix('.json') for i in os.listdir(lang_directory) if i.endswith('.json')]
 
 for lang in language :
-    if lang :
+    if lang in languages :
         lang_name = t.languages_list.get(lang)
         language_menu.add_command(label=lang_name, command=lambda l=lang: t.refresh(l))
 

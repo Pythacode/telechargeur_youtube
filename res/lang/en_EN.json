@@ -31,6 +31,6 @@
     "en_EN": "English",
     "de_DE": "German"
   },
-  "warnig": "Warning",
-  "restart_confirm": "Warning, this action will restart the application"
+  "info": "Warning",
+  "restart_info": "The changes have been saved. They will take effect when the application is restarted."
 }
