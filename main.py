@@ -20,11 +20,6 @@ import sys
 import subprocess
 import locale
 
-# Ajoute des modules pour faciliter la detection par pyinstaler
-
-import pyexpat
-import unicodedata
-
 app_name = "Youtube_downloader"
 
 # Détecter le système d'exploitation
