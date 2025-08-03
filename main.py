@@ -7,130 +7,16 @@ from PIL import Image, ImageTk
 from tkinter.ttk import Progressbar
 import threading
 import queue
-from tkinter.messagebox import askyesno, showwarning, askokcancel, showinfo
+from tkinter.messagebox import askyesno
 import os
 import json
 from pathlib import Path
 import traceback
 import re
-from datetime import datetime
-from colorama import Fore, init
 import webbrowser
-import sys
-import subprocess
-import locale
 
-app_name = "Youtube_downloader"
+from context import *
 
-# Détecter le système d'exploitation
-if os.name == 'nt':  # Windows
-    download_folder = Path(os.environ['USERPROFILE']) / 'Downloads'
-    appData_folder = Path(os.getenv('APPDATA')) / app_name
-elif os.name == 'posix':  # macOS ou Linux
-    download_folder = Path(os.environ['HOME']) / 'Downloads'
-    appData_folder = Path(os.environ['HOME']) / '.local' / 'share' / app_name
-else:
-    download_folder = Path(".")
-    appData_folder = Path(".")
-
-class loggeur() :
-    def __init__(self) :
-
-        log_file = os.path.join(appData_folder, "logs")
-
-        if not os.path.exists(log_file):
-            os.makedirs(log_file)
-
-        self.file = open(os.path.join(log_file, f"{datetime.now().strftime('%Y_%m_%d')}.log"), 'a+', encoding='utf-8')
-        message = f"[START] [{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}]"
-        self.file.write(message + '\n')
-
-    def log(self, message) :
-        message = f"[INFO] [{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] : {message}"
-        self.file.write(message + '\n')
-        print(message)
-
-    def error(self, message) :
-        message = f"[ERROR] [{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] : {message}"
-        self.file.write(message + '\n')
-        print(Fore.RED + message)
-
-    def warnig(self, message) :
-        message = f"[WARNING] [{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] : {message}"
-        self.file.write(message + '\n')
-        print(Fore.YELLOW + message)
-
-log = loggeur()
-
-init(autoreset=True)
-
-if getattr(sys, 'frozen', False):
-    # Cas de l'exécutable
-    res_directory = os.path.join(os.path.dirname(sys.executable), 'res') # Chemin du dossier ressources statique
-    profiles_directory = os.path.join(appData_folder, "profiles") # Chemin des profiles de téléchargement
-    lang_directory = os.path.join(res_directory, "lang")
-else:
-    appData_folder = './'
-    res_directory = 'res' # Chemin du dossier ressources statique
-    profiles_directory = "profiles" # Chemin des profiles de téléchargement
-    lang_directory = os.path.join(res_directory, "lang")
-
-try :
-    with open(os.path.join(appData_folder, 'config.json'), 'r', encoding='utf-8') as f:
-        configuration = json.load(f)
-except :
-    configuration = {}
-
-def updtadeConfig(key, value) :
-    configuration[key] = value
-    with open(os.path.join(appData_folder, 'config.json'), 'w', encoding='utf-8') as f:
-        json.dump(configuration, f, ensure_ascii=False, indent=4)
-
-
-languages = ['fr_FR', 'en_EN', 'de_DE']
-
-language = configuration.get('lang', locale.getlocale()[0] if locale.getlocale()[0] in languages else 'en_EN')
-
-class lang:
-    def __init__(self, language='en_EN'):
-
-        log.log(f'Language : {language}')
-
-        path = os.path.join(lang_directory, f"{language}.json") if language in languages else 'en_EN'
-        try:
-            with open(os.path.join(lang_directory, "fr_FR.json"), "r", encoding="utf-8") as f:
-                ref = list(json.load(f).keys())
-
-            with open(path, "r", encoding="utf-8") as f:
-                translations = json.load(f)
-
-                cles = translations.keys()     
-                    
-                for cle in ref :
-                    if cle not in cles :
-                        log.warnig(f'Key \"{cle}\" not found in {language}.json.')
-                        return self.__init__()
-
-                # Attribue dynamiquement les traductions à l'objet
-                for key, text in translations.items():
-                    setattr(self, key, text)
-
-        except Exception as e:
-            log.error(f"Erreur de chargement des traductions : {e}")
-            return self.__init__()
-    
-    def refresh(self, lang) :
-        showinfo(t.info, t.restart_info)
-        updtadeConfig('lang', lang)
-
-t = lang(language)
-
-def get_profiles() :
-    try :
-        log.log(profiles_directory)
-        return [file.removesuffix('.json').replace('_', ' ') for file in os.listdir(profiles_directory) if os.path.isfile(os.path.join(profiles_directory, file)) and file.endswith('.json') and not ' ' in file]
-    except Exception as e :
-        log.error(e + traceback.format_exc())
 
 def remove_colors(log):
     # Expression régulière pour détecter les codes de couleur ANSI
@@ -158,14 +44,14 @@ def download() :
 
     progress_windows = Frame(root)
 
-    Label(progress_windows, text=t.global_download).pack()
+    Label(progress_windows, text=lang.global_download).pack()
 
     allprogressBarDownload = Progressbar(progress_windows, orient=HORIZONTAL, length=400, mode='determinate')
     allprogressBarDownload.pack(side=TOP, fill="x", expand=True)
 
-    Label(progress_windows, text=t.download_one).pack()    
+    Label(progress_windows, text=lang.download_one).pack()    
     
-    allProgresseLabel = Label(progress_windows, text=t.download_status.format(total=total))
+    allProgresseLabel = Label(progress_windows, text=lang.download_status.format(total=total))
     allProgresseLabel.pack(side=BOTTOM)
 
     
@@ -173,7 +59,7 @@ def download() :
     progressBarDownload.pack(side=TOP, fill="x", expand=True)
     progressBarDownload.start()
 
-    ProgresseLabel = Label(progress_windows, text=t.downloading)
+    ProgresseLabel = Label(progress_windows, text=lang.downloading)
     ProgresseLabel.pack(side=BOTTOM)
 
     progress_windows.pack()
@@ -224,7 +110,7 @@ def download() :
                             progressBarDownload.config(mode='determinate')
 
                             progressBarDownload['value'] = int(float(msg[1].removesuffix('%')))
-                            msg = t.download_progress.format(
+                            msg = lang.download_progress.format(
                                     current=msg[1],
                                     total=msg[3],
                                     speed=msg[5],
@@ -277,7 +163,7 @@ def download() :
                     info = q.get_nowait()  
 
                     if isinstance(info, dict):  # Si l'info est un dictionnaire (métadonnées)
-                        ProgresseLabel.config(text=t.complet_downloading)
+                        ProgresseLabel.config(text=lang.complet_downloading)
 
                     else:  # Si c'est une erreur
                         ProgresseLabel.config(text=info)
@@ -303,7 +189,7 @@ def download() :
             allprogressBarDownload.config(value=int(100*nbr/total))
         if allProgresseLabel.winfo_exists() :
             pourcent = 100*nbr/total
-            allProgresseLabel.config(text=t.total_downloading_progress.format(
+            allProgresseLabel.config(text=lang.total_downloading_progress.format(
                 nbr = nbr,
                 total=total,
                 pourcent=pourcent
@@ -313,14 +199,14 @@ def download() :
     progress_windows.destroy()
     MoviesList.destroy()
 
-    ConfirmLabel.config(text=t.complet_downloading_confim_msg.format(download_folder=download_folder))
+    ConfirmLabel.config(text=lang.complet_downloading_confim_msg.format(download_folder=download_folder))
     ConfirmLabel.pack()
 
 def select_profil() :
 
     if len(scrollable_frame.winfo_children()) == 0 : return
 
-    profiles = get_profiles()
+    profiles = profiles.get_profiles()
     for widget in scrollable_frame.winfo_children():
         if isinstance(widget, Frame):
             for child in widget.winfo_children(): # Retire le boutton suprimer
@@ -340,7 +226,7 @@ def select_profil() :
 
             
     EntryFrame.pack_forget()
-    Next_button.config(text=t.downloading, command=download)
+    Next_button.config(text=lang.downloading, command=download)
 
 def add_url(url=False, dowload_playlist=False):
 
@@ -378,12 +264,12 @@ def add_url(url=False, dowload_playlist=False):
         title = info.get('title', 'Titre indisponible')
         view_count = info.get('view_count', None)
         subtitlte = (
-            info.get('artist', info.get('uploader', t.artist_not_found))
+            info.get('artist', info.get('uploader', lang.artist_not_found))
             + ' · '
             + f"{heures:02}:{minutes:02}:{secondes:02}"
             + ' · '
-            + (t.view_number_not_found if view_count is None else '{:,}'.format(view_count).replace(',', ' '))
-            + ' ' + t.views
+            + (lang.view_number_not_found if view_count is None else '{:,}'.format(view_count).replace(',', ' '))
+            + ' ' + lang.views
         )
 
 
@@ -391,7 +277,7 @@ def add_url(url=False, dowload_playlist=False):
         
         if is_playlist :
             title = '[Playlist] ' + title
-            subtitlte += ' · ' + str(info.get('playlist_count', t.video_number_not_found)) + ' ' + t.video
+            subtitlte += ' · ' + str(info.get('playlist_count', lang.video_number_not_found)) + ' ' + lang.video
             try:
                 thumbnail_url = info.get('thumbnails')[0].get('url')
             except TypeError :
@@ -441,14 +327,14 @@ def add_url(url=False, dowload_playlist=False):
         label_url.pack_forget()
 
         # Ajouter un bouton "Supprimer"
-        menu_button = Button(cadre, text=t.delete, relief=FLAT, command=cadre.destroy)
+        menu_button = Button(cadre, text=lang.delete, relief=FLAT, command=cadre.destroy)
         menu_button.pack(side=RIGHT)
     
     #Récuperer l'url si non fournie comme argument
     if not url:
         url = EntryURL.get()
         if '&list=' in url :
-            if askyesno('Playlist', t.playlist_confirm) :
+            if askyesno('Playlist', lang.playlist_confirm) :
                 url = url.split('&list=')[0]
     
     log.log(f"NEW URL : {url}")
@@ -483,13 +369,13 @@ def add_url(url=False, dowload_playlist=False):
             info = q.get_nowait()  
 
             if isinstance(info, dict):  # Si l'info est un dictionnaire (métadonnées)
-                ProgresseLabel.config(text=t.complet_downloading)
+                ProgresseLabel.config(text=lang.complet_downloading)
 
                 if info.get('_type', None) == 'playlist' : #Si c'est une playlist
                     if dowload_playlist : # Vérifie si l'utilisateur a déja répondus a la question suivante
                         for video in info.get('entries') :
                             add_movies(video)
-                    elif askyesno('Playlist', t.ask_playlist.format(nbr_video=str(info.get('playlist_count', 'Nombre de vidéo indisponible')))) : #Demande a l'utilisateur si on ajoute chaque vidéo séparément
+                    elif askyesno('Playlist', lang.ask_playlist.format(nbr_video=str(info.get('playlist_count', 'Nombre de vidéo indisponible')))) : #Demande a l'utilisateur si on ajoute chaque vidéo séparément
                         add_movies(info, True)
                     else : 
                         add_url(url, True)
@@ -512,7 +398,7 @@ def add_url(url=False, dowload_playlist=False):
     progressBarMetahdonne.pack(side=TOP, fill="x", expand=True)
     progressBarMetahdonne.start()
 
-    ProgresseLabel = Label(progress_windows, text=t.downloading)
+    ProgresseLabel = Label(progress_windows, text=lang.downloading)
     ProgresseLabel.pack(side=BOTTOM)
 
     # Démarrer le téléchargement dans un thread séparé
@@ -522,71 +408,18 @@ def add_url(url=False, dowload_playlist=False):
     # Lancer la vérification périodique de la queue
     check_queue()
 
-def profilesEditor() :
-    try :
-        def remove(name, cadre) :
-            if askokcancel(t.confirmation, t.remove_profils_confirmation.format(name=name)) :
-                os.remove(f'{profiles_directory}/{name.replace(' ', '_')}.json')
-                cadre.destroy()
-
-
-        profilesRoot = Toplevel(root)
-
-        ProfilesList = Frame(profilesRoot, relief=GROOVE)
-        ProfilesList.pack(fill="both", expand=True, padx=5, pady=2.5)
-
-        # Canvas pour le défilement
-        ProfilesCanva = Canvas(ProfilesList, highlightthickness=0)
-        ProfilesCanva.pack(side="left", fill="both", expand=True)
-
-        # Barre de défilement verticale
-        scrollbar = Scrollbar(ProfilesList, orient="vertical", command=ProfilesCanva.yview)
-        scrollbar.pack(side="right", fill="y")
-        ProfilesCanva.configure(yscrollcommand=scrollbar.set)
-
-        # Frame pour les vidéos à l'intérieur du Canvas
-        scrollable_frame = Frame(ProfilesCanva)
-        canvas_frame = ProfilesCanva.create_window((0, 0), window=scrollable_frame, anchor="nw")
-
-        # Ajuster la taille du Canvas en fonction du contenu
-        def on_frame_configure(event):
-            ProfilesCanva.configure(scrollregion=ProfilesCanva.bbox("all"))
-
-        scrollable_frame.bind("<Configure>", on_frame_configure)
-
-        # Ajuster la largeur du Canvas au redimensionnement
-        ProfilesCanva.bind("<Configure>", lambda e: ProfilesCanva.itemconfig(canvas_frame, width=e.width))
-        
-        for profil in get_profiles() :
-            cadre = Frame(scrollable_frame)
-            cadre.pack(fill=X, padx=10, pady=5)
-
-            # Ajouter les titres
-            texte_frame = Frame(cadre)
-            texte_frame.pack(side=LEFT, padx=10, fill=BOTH, expand=True)
-
-            label_texte1 = Label(texte_frame, text=profil, font=("Arial", 12, "bold"))
-            label_texte1.pack(anchor="w")
-
-            # Ajouter un bouton "Supprimer"
-            remove_button = Button(cadre, text=t.delete, relief=FLAT, command=lambda p=profil, c=cadre: remove(p, c))
-            remove_button.pack(side=RIGHT)
-        
-    except Exception as e :
-        log.error(e + traceback.format_exc())
-
 def help() :
     webbrowser.open('https://github.com/Pythacode/telechargeur_youtube')
 
 entry_color = 'white'
 
 # Fenêtre principale
-root = Tk()
+
 
 icon = PhotoImage(file=Path(res_directory) / "icon" / "32.png")
 root.iconphoto(True, icon)
 
-root.title(t.root_title)
+root.title(lang.root_title)
 root.geometry("1000x500")
 
 # Cadre pour la barre d'URL
@@ -599,11 +432,11 @@ EntryURL.pack(side=LEFT, fill="x", expand=True)
 EntryURL.bind("<Return>", lambda event=None: add_url())
 
 # Boutton "ajouter"
-EntryButton = Button(EntryFrame, text=t.add_button, command=add_url, relief=FLAT, bg=entry_color)
+EntryButton = Button(EntryFrame, text=lang.add_button, command=add_url, relief=FLAT, bg=entry_color)
 EntryButton.pack(side=RIGHT, padx=3.5)
 
 # LabelFrame pour lister les vidéos
-MoviesList = LabelFrame(root, text=t.Movie_list_label, relief=GROOVE)
+MoviesList = LabelFrame(root, text=lang.Movie_list_label, relief=GROOVE)
 MoviesList.pack(fill="both", expand=True, padx=5, pady=2.5)
 
 # Canvas pour le défilement
@@ -629,7 +462,7 @@ scrollable_frame.bind("<Configure>", on_frame_configure)
 MoviesCanva.bind("<Configure>", lambda e: MoviesCanva.itemconfig(canvas_frame, width=e.width))
 
 # Button suivant
-Next_button = Button(root, text=t.next_button_choice_profil, command=select_profil)
+Next_button = Button(root, text=lang.next_button_choice_profil, command=select_profil)
 Next_button.pack(side=BOTTOM, fill="x", expand=True, padx=5)
 
 ConfirmLabel = Label(root)
@@ -640,24 +473,23 @@ menubar = Menu(root)
 
 file_menu = Menu(menubar, tearoff=0)
 
-file_menu.add_command(label=t.Modify_Profils_Option, command=profilesEditor)
+file_menu.add_command(label=lang.Modify_Profils_Option, command=profiles.profilesEditor)
 file_menu.add_separator()
-file_menu.add_command(label=t.help, command=help)
+file_menu.add_command(label=lang.help, command=help)
 file_menu.add_separator()
-file_menu.add_command(label=t.quit, command=root.quit)
+file_menu.add_command(label=lang.quit, command=root.quit)
 
-menubar.add_cascade(label=t.files_menubar, menu=file_menu)
+menubar.add_cascade(label=lang.files_menubar, menu=file_menu)
 
 language_menu = Menu(menubar, tearoff=0)
 
 language = [i.removesuffix('.json') for i in os.listdir(lang_directory) if i.endswith('.json')]
 
-for lang in language :
-    if lang in languages :
-        lang_name = t.languages_list.get(lang)
-        language_menu.add_command(label=lang_name, command=lambda l=lang: t.refresh(l))
+for lang_ID in language :
+    lang_name = lang.languages_list.get(lang_ID)
+    language_menu.add_command(label=lang_name, command=lambda l=lang_ID: lang.refresh(l))
 
-menubar.add_cascade(label=t.languages, menu=language_menu)
+menubar.add_cascade(label=lang.languages, menu=language_menu)
 
 root.config(menu=menubar)
 

@@ -80,7 +80,7 @@ Ces fonction ajoute au log le message suivant :
 
 `[PREFIX] [AAA-MM-DD HH:MM:SS] : msg`
 
-Là ou prefix est différent pour chaque fonction (respectivement `INFO`, `ERROR`, `WARNIG`.
+Là ou prefix est différent pour chaque fonction (respectivement `INFO`, `ERROR`, `WARNIG`).
 Elle affiche aussi `msg` dans la console, en rouge dans `ERROR` et en jaune dans `WARNIG`.
 
 ## Crédits
