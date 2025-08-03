@@ -66,7 +66,7 @@ Pour l'instant, cet outils permet seulement de suprimer les profils.
 
 ## Explication du code
 
-### Classe `loggeur()`
+### Classe `loggeur()` (loggeur.py)
 
 Classe qui me permet de gérer les logs. Elle contient 4 fonction :
 
@@ -74,7 +74,7 @@ Classe qui me permet de gérer les logs. Elle contient 4 fonction :
 
 Cette fonction crée le dossier {APPDATA}/log si il n'exsiste pas, elle crée à l'interieur le fichier "AAAA_MM_DD.log" si il n'exsiste pas et écrit dedant "[START] [AAA-MM-DD HH:MM:SS]".
 
-#### `log(self, message)`, `error(self, message)`, warnig(self, message)`
+#### `log(self, message)`, `error(self, message)`, `warnig(self, message)`
 
 Ces fonction ajoute au log le message suivant :
 
