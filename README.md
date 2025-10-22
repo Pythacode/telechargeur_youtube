@@ -1,11 +1,9 @@
 # ![logo_affichage](https://github.com/user-attachments/assets/ef984914-7e06-4a17-88af-2c2e0b46bc80) Telechargeur youtube
 
 
-
-
 ## Sommaire
 
-- [installation](https://github.com/Pythacode/telechargeur_youtube?tab=readme-ov-file#instalation)
+- [installation](https://github.com/Pythacode/telechargeur_youtube?tab=readme-ov-file#installation)
 - [Fonctionnement](https://github.com/Pythacode/telechargeur_youtube?tab=readme-ov-file#fonctionnement)
 - [Explication du code : En cours de rédaction](https://github.com/Pythacode/telechargeur_youtube?tab=readme-ov-file#explication_du_code)
 - [Crédits](https://github.com/Pythacode/telechargeur_youtube?tab=readme-ov-file#crédits)
