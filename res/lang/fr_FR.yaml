@@ -29,5 +29,5 @@ languages_list:
   fr_FR: "Français"
   en_EN: "Anglais"
   de_DE: "Allemand"
-  info: "Info"
+info: "Info"
 restart_info: "Les changements ont été enregistrés. Ils prendront effet lors du redémarrage de l'application"

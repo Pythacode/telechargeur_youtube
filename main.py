@@ -483,7 +483,7 @@ menubar.add_cascade(label=lang.files_menubar, menu=file_menu)
 
 language_menu = Menu(menubar, tearoff=0)
 
-language = [i.removesuffix('.json') for i in os.listdir(lang_directory) if i.endswith('.json')]
+language = [i.removesuffix('.yaml') for i in os.listdir(lang_directory) if i.endswith('.yaml')]
 
 for lang_ID in language :
     lang_name = lang.languages_list.get(lang_ID)

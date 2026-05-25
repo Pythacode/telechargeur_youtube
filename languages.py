@@ -15,27 +15,22 @@ class Lang:
 
         path = os.path.join(lang_directory, f"{language}.yaml")
         try:
-            #with open(os.path.join(lang_directory, "fr_FR.json"), "r", encoding="utf-8") as f:
-            #    ref = list(json.load(f).keys())
             with open(os.path.join(lang_directory, "fr_FR.yaml"), 'r', encoding="utf-8") as file :
-                ref = list(yaml.safe_load(file).keys())
+                ref = yaml.safe_load(file)
 
             with open(path, 'r', encoding="utf-8") as file :
                 translations = yaml.safe_load(file)
 
-            #with open(path, "r", encoding="utf-8") as f:
-            #    translations = json.load(f)
-
-            cles = translations.keys()     
+            cles = translations.keys()
+            ref_keys = ref.keys()     
                 
-            for cle in ref :
-                if cle not in cles :
+            for cle in ref_keys :
+                if cle in cles :
+                    setattr(self, cle, translations[cle])
+                else :
                     log.warnig(f'Key \"{cle}\" not found in {language}.yaml.')
-                    #return self.__init__()
+                    setattr(self, cle, translations[cle])
 
-            # Attribue dynamiquement les traductions à l'objet
-            for key, text in translations.items():
-                setattr(self, key, text)
 
         except Exception as e:
             log.error(f"Erreur de chargement des traductions : {e}")
