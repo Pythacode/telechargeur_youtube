@@ -1,3 +1,4 @@
 logs/
 compiler/
 config.json
+*.pyc
