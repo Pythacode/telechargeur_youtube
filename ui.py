@@ -120,12 +120,11 @@ class Gui(QMainWindow):
 
         self.thread.start()
 
-    def closeEvent(self, *event):
+    def closeEvent(self, event):
         self.thread.quit()
         self.thread.wait()
         log.info("[CLOSE] --------------------------------")
-        if event : 
-            event.accept()
+        event.accept()
 
     def start(self, fonction, *args, **kwargs):
         self.signal.emit((fonction, args, kwargs))
@@ -421,7 +420,7 @@ class Gui(QMainWindow):
             self.next_button.setDisabled(False)
             self.global_download_advencement_label.setText(lang.complet_downloading_confim_msg.format(download_folder = download_folder))
             self.next_button.clicked.disconnect()
-            self.next_button.clicked.connect(self.closeEvent)
+            self.next_button.clicked.connect(self.close)
 
         else :
 
