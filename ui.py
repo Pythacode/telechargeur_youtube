@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (
 )
 from downloader import Moteur
 from context import *
-from PySide6.QtGui import QPixmap, QAction, QIcon
+from PySide6.QtGui import QPixmap, QAction, QIcon, QActionGroup
 import requests
 from PySide6.QtGui import QImageReader
 from PySide6.QtCore import QByteArray, QBuffer, QIODevice
@@ -120,11 +120,12 @@ class Gui(QMainWindow):
 
         self.thread.start()
 
-    def closeEvent(self, event):
+    def closeEvent(self, *event):
         self.thread.quit()
         self.thread.wait()
         log.info("[CLOSE] --------------------------------")
-        event.accept()
+        if event : 
+            event.accept()
 
     def start(self, fonction, *args, **kwargs):
         self.signal.emit((fonction, args, kwargs))
@@ -275,6 +276,42 @@ class Gui(QMainWindow):
             lang_action = QAction(f"&{name}", self)
             lang_action.triggered.connect(lambda checked=False, code=language_code : self.set_languages(code))
             languages_menu.addAction(lang_action)
+
+        cookies_menu = settings_menu.addMenu("Utiliser les cookies du navigateur")
+
+        browser_group = QActionGroup(self)
+        browser_group.setExclusive(True)
+
+        browsers = [
+            lang.none,
+            "Chrome",
+            "Chromium",
+            "Brave",
+            "Edge",
+            "Firefox",
+            "Opera",
+            "Safari",
+            "Vivaldi"
+        ]
+
+        self.browser_actions = {} 
+
+        for browser in browsers:
+            action = QAction(browser, self)
+            action.setCheckable(True)
+            action.setData(browser)
+            browser_group.addAction(action)
+            cookies_menu.addAction(action)
+            self.browser_actions[browser] = action
+
+        self.browser_actions[configuration.get('cookies_browser', lang.none).capitalize()].setChecked(True)
+
+        browser_group.triggered.connect(self.on_browser_selected)
+
+    def on_browser_selected(self, action):
+        selected_browser = action.data()
+        log.info(f"New browser selected : {selected_browser}")
+        self.start(self.downloader.set_nav_for_cookies, selected_browser)
 
     def get_video_list_container(self) :
 

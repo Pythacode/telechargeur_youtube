@@ -5,10 +5,7 @@ from context import configuration, log, lang_directory
 class Lang:
     def __init__(self):
 
-        if hasattr(configuration, "lang"):
-            language = configuration.lang
-        else:
-            language = "en_EN"
+        language = configuration.get("lang", "en_EN")
 
         log.info(f'Language : {language}')
 

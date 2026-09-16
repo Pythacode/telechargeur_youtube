@@ -12,10 +12,12 @@ class Config :
         except :
             log.warning(f"Can't oppend configuration file \"{os.path.join(appData_folder, 'config.json')}\". Start with blank configuration")
             self.configuration = {}
-        finally :
-            for key, value in self.configuration.items():
-                    log.info(f'Create configuration : "{key}" = "{value}"')
-                    setattr(self, key, value)
+
+    def get(self, key, default_value) :
+        if key in self.configuration :
+            return self.configuration[key]
+        else :
+            return default_value
 
     def updtadeConfig(self, key, value) :
         self.key = value

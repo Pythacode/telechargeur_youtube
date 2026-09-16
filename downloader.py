@@ -19,6 +19,8 @@ class Moteur(QObject):
     def __init__(self):
         super().__init__()
         self.to_download = {}
+        self.browser_name = None
+        self.browser_name = configuration.get('cookies_browser', None)
 
     def add_url(self, url):
         
@@ -30,6 +32,9 @@ class Moteur(QObject):
                 'skip_download' : True,
         }
 
+
+        if self.browser_name :
+            ydl_opts['cookies-from-browser'] = self.browser_name
 
         try :
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -44,6 +49,13 @@ class Moteur(QObject):
 
     def handle_progress(self, data):
         self.progress_hooks.emit(data)
+
+    def set_nav_for_cookies(self, nav_name) :
+        if nav_name == lang.none :
+            self.browser_name = None
+        else :
+            self.browser_name = nav_name.lower()
+        configuration.updtadeConfig('cookies_browser', self.browser_name)
 
     def start_download(self):
         for  index, (url, profil) in enumerate(self.to_download.items()) :
@@ -66,6 +78,8 @@ class Moteur(QObject):
             options['logger'] = log
             options['progress_hooks'] = [self.handle_progress]
             options['extract_flat'] = True
+            if self.browser_name :
+                options['cookies-from-browser'] = self.browser_name
 
             try:
                 with yt_dlp.YoutubeDL(options) as ydl:
