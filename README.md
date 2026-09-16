@@ -11,7 +11,7 @@
 
 ## Installation
 
-Pour installer l'app, vous pouvez ~~[télécharger un executable depuis les releases](https://github.com/Pythacode/yt-dlp-gui/releases)~~, ou [télécharger le code source](https://github.com/Pythacode/yt-dlp-gui/archive/refs/heads/main.zip) puis installer les dépendance :
+Pour installer l'app, vous pouvez [télécharger un executable depuis les releases](https://github.com/Pythacode/yt-dlp-gui/releases), ou [télécharger le code source](https://github.com/Pythacode/yt-dlp-gui/archive/refs/heads/main.zip) puis installer les dépendance :
 
 Assurez-vous d'avoir télécharger le code source dans un dossier et d'avoir python3 et pip d’installé.
 
