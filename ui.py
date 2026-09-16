@@ -221,7 +221,7 @@ class Gui(QMainWindow):
         return frame
 
     def help(self) :
-        webbrowser.open("https://nathanaelle.org/project/youtube_downloader/")
+        webbrowser.open("https://yt-dlp-gui.nathanaelle.org/")
 
     def set_languages(self, language_code) :
         lang.refresh(language_code)
