@@ -250,7 +250,7 @@ class Gui(QMainWindow):
         file_menu.addSeparator()
 
         contribute_action = QAction(f"&{lang.contribute}", self)
-        contribute_action.triggered.connect(lambda : webbrowser.open('https://github.com/Pythacode/telechargeur_youtube#Contribuer'))
+        contribute_action.triggered.connect(lambda : webbrowser.open('https://github.com/Pythacode/yt-dlp-gui#Contribuer'))
 
         file_menu.addAction(contribute_action)
 

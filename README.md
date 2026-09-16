@@ -11,7 +11,7 @@
 
 ## Installation
 
-Pour installer l'app, vous pouvez ~~[télécharger un executable depuis les releases](https://github.com/Pythacode/telechargeur_youtube/releases)~~, ou [télécharger le code source](https://github.com/Pythacode/telechargeur_youtube/archive/refs/heads/main.zip) puis intaller les dépendance :
+Pour installer l'app, vous pouvez ~~[télécharger un executable depuis les releases](https://github.com/Pythacode/yt-dlp-gui/releases)~~, ou [télécharger le code source](https://github.com/Pythacode/yt-dlp-gui/archive/refs/heads/main.zip) puis intaller les dépendance :
 
 Assurez-vous d'avoir télécharger le code source dans un dossier et d'avoir python3 et pip d'instalé.
 
@@ -96,7 +96,7 @@ Elle affiche aussi `msg` dans la console, en rouge dans `ERROR` et en jaune dans
 
 ## Contribuer
 Vous pouvez librement contribuer, en codant ou en traduisant.
-Pour ce faire [ouvrez une pull request](https://github.com/Pythacode/telechargeur_youtube/pulls) ou [envoyez-moi un mail](mailto:contact+yt-dlp@nathanaelle.org) pour vous assurez que personne ne travaille sur la même chose que vous.
+Pour ce faire [ouvrez une pull request](https://github.com/Pythacode/yt-dlp-gui/pulls) ou [envoyez-moi un mail](mailto:contact+yt-dlp@nathanaelle.org) pour vous assurez que personne ne travaille sur la même chose que vous.
 Si vous voulez participer mais que vous ne savez pas quoi faire, lancez l'aplication et regardez par vous même, il reste beucoup à améliorer
 
 ## Crédits
