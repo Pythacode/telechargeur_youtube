@@ -1,8 +1,9 @@
 from datetime import datetime
-import os
-from colorama import Fore, init
+import os, re
 
-init(autoreset=True)
+RED = "[31m"
+YELLOW = "[33m"
+RESET = "[39m"
 
 class Loggeur() :
     def __init__(self, appData_folder) :
@@ -13,20 +14,30 @@ class Loggeur() :
             os.makedirs(log_file)
 
         self.file = open(os.path.join(log_file, f"{datetime.now().strftime('%Y_%m_%d')}.log"), 'a+', encoding='utf-8')
-        message = f"[START] [{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}]"
+        
+        message = f"[START] [{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] --------------------------------------"
         self.file.write(message + '\n')
 
-    def log(self, message) :
+    def debug(self, message) :
+        message = f"[DEBUG] [{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] : {message}"
+        self.file.write(self.remove_colors(message) + '\n')
+        print(message)
+
+    def info(self, message) :
         message = f"[INFO] [{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] : {message}"
-        self.file.write(message + '\n')
+        self.file.write(self.remove_colors(message) + '\n')
         print(message)
 
     def error(self, message) :
         message = f"[ERROR] [{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] : {message}"
-        self.file.write(message + '\n')
-        print(Fore.RED + message)
+        self.file.write(self.remove_colors(message) + '\n')
+        print(RED + message + RESET)
 
-    def warnig(self, message) :
+    def warning(self, message) :
         message = f"[WARNING] [{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] : {message}"
-        self.file.write(message + '\n')
-        print(Fore.YELLOW + message)
+        self.file.write(self.remove_colors(message) + '\n')
+        print(YELLOW + message + RESET)
+
+    def remove_colors(self, msg):
+        color_code_pattern = r'\x1b\[[0-9;]*m'
+        return re.sub(color_code_pattern, '', msg)

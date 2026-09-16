@@ -1,0 +1,23 @@
+QFrame {
+    margin: 5px;
+    padding: 0;
+    border-radius: 5px;
+    background-color: #141618;
+    width: 100px;
+    height: 2rem;
+}
+
+#video {
+    text-align: left;
+    border: 1px solid #6a52a4;
+    border-radius: 5px;
+}
+
+#Title {
+    font-size: 17px;
+    font-weight: bold;
+}
+
+QPushButton {
+    width: 5px;
+}

@@ -1,16 +1,18 @@
 import os
 import sys
-from tkinter import Tk
 from pathlib import Path
+from PySide6.QtCore import QStandardPaths
+
+download_folder = QStandardPaths.writableLocation(
+    QStandardPaths.DownloadLocation
+)
 
 app_name = "Youtube_downloader"
 
 # Détecter le système d'exploitation
 if os.name == 'nt':  # Windows
-    download_folder = Path(os.environ['USERPROFILE']) / 'Downloads'
     appData_folder = Path(os.getenv('APPDATA')) / app_name
 elif os.name == 'posix':  # macOS ou Linux
-    download_folder = Path(os.environ['HOME']) / 'Downloads'
     appData_folder = Path(os.environ['HOME']) / '.local' / 'share' / app_name
 else:
     download_folder = Path(".")
@@ -26,8 +28,6 @@ else:
     res_directory = 'res' # Chemin du dossier ressources statique
     profiles_directory = "profiles" # Chemin des profiles de téléchargement
     lang_directory = os.path.join(res_directory, "lang")
-
-root = Tk()
 
 from loggeur import Loggeur
 log = Loggeur(appData_folder)

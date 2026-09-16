@@ -1,14 +1,14 @@
-from tkinter import *
-from tkinter.messagebox import askokcancel
 import os
 import traceback
-from context import lang, root, log, profiles_directory
+from context import lang, log, profiles_directory
 
 class Profiles :
     def __init__(self):
         pass
 
     def profilesEditor(self) :
+        log.error('Deprecated function, we must modernize it before use')
+        return
         try :
             def remove(name, cadre) :
                 if askokcancel(self.confirmation, self.remove_profils_confirmation.format(name=name)) :
@@ -43,7 +43,7 @@ class Profiles :
             # Ajuster la largeur du Canvas au redimensionnement
             ProfilesCanva.bind("<Configure>", lambda e: ProfilesCanva.itemconfig(canvas_frame, width=e.width))
             
-            for profil in get_profiles() :
+            for profil in self.get_profiles() :
                 cadre = Frame(scrollable_frame)
                 cadre.pack(fill=X, padx=10, pady=5)
 
@@ -62,10 +62,9 @@ class Profiles :
             log.error(e + traceback.format_exc())
 
             
-        def get_profiles(self) :
-            try :
-                log.log(profiles_directory)
-                return [file.removesuffix('.json').replace('_', ' ') for file in os.listdir(profiles_directory) if os.path.isfile(os.path.join(profiles_directory, file)) and file.endswith('.json') and not ' ' in file]
-            except Exception as e :
-                log.error(e + traceback.format_exc())
+    def get_profiles(self) :
+        try :
+            return [file.removesuffix('.json').replace('_', ' ') for file in os.listdir(profiles_directory) if os.path.isfile(os.path.join(profiles_directory, file)) and file.endswith('.json') and not ' ' in file]
+        except Exception as e :
+            log.error(e + traceback.format_exc())
 

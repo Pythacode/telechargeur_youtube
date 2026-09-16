@@ -1,4 +1,4 @@
-yt-dlp
-pillow
+PySide6
 requests
-colorama
+yt-dlp
+PyYAML

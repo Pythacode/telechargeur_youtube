@@ -1,5 +1,4 @@
 import os
-from tkinter.messagebox import showinfo
 import yaml
 from context import configuration, log, lang_directory
 
@@ -11,7 +10,7 @@ class Lang:
         else:
             language = "en_EN"
 
-        log.log(f'Language : {language}')
+        log.info(f'Language : {language}')
 
         path = os.path.join(lang_directory, f"{language}.yaml")
         try:
@@ -28,14 +27,14 @@ class Lang:
                 if cle in cles :
                     setattr(self, cle, translations[cle])
                 else :
-                    log.warnig(f'Key \"{cle}\" not found in {language}.yaml.')
-                    setattr(self, cle, translations[cle])
+                    log.warning(f'Key \"{cle}\" not found in {language}.yaml.')
+                    setattr(self, cle, ref[cle])
 
 
         except Exception as e:
             log.error(f"Erreur de chargement des traductions : {e}")
-            return self.__init__()
-    
-    def refresh(self, lang) :
+            self.refresh()
+            
+    def refresh(self, lang='en_EN') :
         configuration.updtadeConfig('lang', lang)
-        showinfo(self.info, self.restart_info)
+        self.__init__()

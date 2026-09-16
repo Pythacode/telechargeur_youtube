@@ -1,35 +1,36 @@
-# ![logo_affichage](https://github.com/user-attachments/assets/ef984914-7e06-4a17-88af-2c2e0b46bc80) Telechargeur youtube
+# ![logo_affichage](./docs/logo_affichage.png) Telechargeur youtube
 
 
 ## Sommaire
 
-- [installation](https://github.com/Pythacode/telechargeur_youtube?tab=readme-ov-file#installation)
-- [Fonctionnement](https://github.com/Pythacode/telechargeur_youtube?tab=readme-ov-file#fonctionnement)
-- [Explication du code : En cours de rédaction](https://github.com/Pythacode/telechargeur_youtube?tab=readme-ov-file#explication_du_code)
-- [Crédits](https://github.com/Pythacode/telechargeur_youtube?tab=readme-ov-file#crédits)
+- [installation](#installation)
+- [Fonctionnement](#fonctionnement)
+- [Explication du code](#explication_du_code)
+- [Contribuer](#Contribuer)
+- [Crédits](#crédits)
 
 ## Installation
 
-Pour installer l'app, vous pouvez [télécharger un executable depuis les releases](https://github.com/Pythacode/telechargeur_youtube/releases), ou [télécharger le code source](https://github.com/Pythacode/telechargeur_youtube/archive/refs/heads/main.zip) puis intaller les dépendance :
+Pour installer l'app, vous pouvez ~~[télécharger un executable depuis les releases](https://github.com/Pythacode/telechargeur_youtube/releases)~~, ou [télécharger le code source](https://github.com/Pythacode/telechargeur_youtube/archive/refs/heads/main.zip) puis intaller les dépendance :
 
-### Dépendance :
+Assurez-vous d'avoir télécharger le code source dans un dossier et d'avoir python3 et pip d'instalé.
 
-- Python 3
-- Pip
-- Tous les modules dans [requirements.txt](https://github.com/Pythacode/telechargeur_youtube/blob/main/requirements.txt)
-
-> [!TIP]
-> Vous pouvez installer les modules avec `pip install -r requirements.txt`
+Ensuite installer les dépendances avec
+```shell
+pip install -r requirements.txt
+```
 
 ## Fonctionnement
 
 > [!WARNING]
-> Attention, il est recomander d'utiliser cette application avec une bonne connection.
+> Il est requis d'utiliser cette application avec une bonne connection.
+
+L'aplication est compatible avec toutes les plateformes de [ytb-dlp](https://github.com/yt-dlp/yt-dlp).
 
 ### Ajouter des vidéos.
 
 Sur le premier écran de l'application, vous pouvez ajouter des URLs de vidéos dans la zone de texte prévus à cette effet.
-Après avoir valider et attendus quelques instants, la vidéo apparait dans la liste. vous pouvez la suprimer, en ajouter d'autre ou passer à l'étape suivante. Vous pouvez aussi ajouter une playlist - en tant que tel, ou en séparant chaque vidéo.
+Après avoir valider et attendus quelques instants, la vidéo apparait dans la liste. vous pouvez la suprimer, en ajouter d'autre ou passer à l'étape suivante. Vous pouvez aussi ajouter une playlist.
 
 ### Choix du profil
 
@@ -41,7 +42,7 @@ Dans les version future, d'autre profils et la posibilité d'en créer sois mêm
 Une fois les profils choisi et le boutton `Téléchargement` préssé, deux barre de progression s'affiche :
 Une du téléchargement global et une de la vidéo actuelle.
 
-Une fois le téléchargement terminé, les téléchargement sont dans vos dossier "Téléchargements"
+Une fois le téléchargement terminé, les téléchargement sont dans votre dossier Téléchargements
 
 > [!WARNING]
 > Comme la date du fichier est la date de l'upload sur youtube, il se peut qu'elle se retrouve à la fin de votre dossier téléchargement.
@@ -60,26 +61,43 @@ Langues diponible :
 
 ### Outils d'édition de profils
 
+> [!CAUTION]
+> Seul les fonctions `__init__` et `getprofiles` fonctionent, l'autre utilisant tkinter, elle à temporairement été désactiver le temps de la redéveloper avec la nouvelle architecture & qt6.
+
 Pour l'instant, cet outils permet seulement de suprimer les profils.
 
 ## Explication du code
 
+### Architecture
+
+```
+├── context.py # Fichier ou sont initialiser la langues, les réglages...
+└── main.py
+    └── ui.py # Interface Graphique
+        └── moteur.py # Moteur de yt-dlp
+```
+
 ### Classe `loggeur()` (loggeur.py)
 
-Classe qui me permet de gérer les logs. Elle contient 4 fonction :
+Classe qui permet de gérer les logs. Elle contient 4 fonction :
 
 #### `__init__(self)` : Initialise les logs.
 
 Cette fonction crée le dossier {APPDATA}/log si il n'exsiste pas, elle crée à l'interieur le fichier "AAAA_MM_DD.log" si il n'exsiste pas et écrit dedant "[START] [AAA-MM-DD HH:MM:SS]".
 
-#### `log(self, message)`, `error(self, message)`, `warnig(self, message)`
+#### `info(self, message)`, `error(self, message)`, `warning(self, message)`
 
 Ces fonction ajoute au log le message suivant :
 
 `[PREFIX] [AAA-MM-DD HH:MM:SS] : msg`
 
-Là ou prefix est différent pour chaque fonction (respectivement `INFO`, `ERROR`, `WARNIG`).
-Elle affiche aussi `msg` dans la console, en rouge dans `ERROR` et en jaune dans `WARNIG`.
+Là ou prefix est différent pour chaque fonction (respectivement `INFO`, `ERROR`, `WARNING`).
+Elle affiche aussi `msg` dans la console, en rouge dans `ERROR` et en jaune dans `WARNING`.
+
+## Contribuer
+Vous pouvez librement contribuer, en codant ou en traduisant.
+Pour ce faire [ouvrez une pull request](https://github.com/Pythacode/telechargeur_youtube/pulls) ou [envoyez-moi un mail](mailto:contact+yt-dlp@nathanaelle.org) pour vous assurez que personne ne travaille sur la même chose que vous.
+Si vous voulez participer mais que vous ne savez pas quoi faire, lancez l'aplication et regardez par vous même, il reste beucoup à améliorer
 
 ## Crédits
 
@@ -90,9 +108,7 @@ Traduction :
 - Allemand : Cyanne [@Art34mis](https://github.com/Art34mis/)
 - Anglais : GreGrenier
 
-#
-__© Tous droits réservés 2025__
-
+<hr>
 *Made by Nath with* :heart:
 
 
