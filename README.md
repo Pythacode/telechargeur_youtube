@@ -34,7 +34,7 @@ Après avoir valider et attendus quelques instants, la vidéo apparait dans la l
 
 ### Choix du profil
 
-Une fois que vous avez appuyer sur le boutton `Choisir le profil de téléchargement`, pour chaque vidéo, vous pouvez choisir un des deux profils : `Best audio` ou `Best vidéo`.
+Une fois que vous avez appuyer sur le boutton `Choisir le profil de téléchargement`, pour chaque vidéo, vous pouvez choisir un des trois profils : `Best audio`, `Best vidéo` ou `Best Vidéo under 1080p`.
 Dans les version future, d'autre profils et la posibilité d'en créer sois même seras implémenté.
 
 ### Téléchargement
