@@ -61,7 +61,7 @@ Langues disponibles :
 ### Outils d'édition de profils
 
 > [!CAUTION]
-> Seul les fonctions `__init__` et `getprofiles` fonctionent, l'autre utilisant tkinter, elle à temporairement été désactiver le temps de la redéveloper avec la nouvelle architecture & qt6.
+> Seul les fonctions `__init__` et `getprofiles` fonctionent, l'autre utilisant tkinter, elle à temporairement été désactivée le temps de la redéveloper avec la nouvelle architecture & qt6.
 
 Pour l'instant, cet outils permet seulement de supprimer les profils.
 
