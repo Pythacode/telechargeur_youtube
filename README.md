@@ -11,9 +11,9 @@
 
 ## Installation
 
-Pour installer l'app, vous pouvez ~~[télécharger un executable depuis les releases](https://github.com/Pythacode/yt-dlp-gui/releases)~~, ou [télécharger le code source](https://github.com/Pythacode/yt-dlp-gui/archive/refs/heads/main.zip) puis intaller les dépendance :
+Pour installer l'app, vous pouvez ~~[télécharger un executable depuis les releases](https://github.com/Pythacode/yt-dlp-gui/releases)~~, ou [télécharger le code source](https://github.com/Pythacode/yt-dlp-gui/archive/refs/heads/main.zip) puis installer les dépendance :
 
-Assurez-vous d'avoir télécharger le code source dans un dossier et d'avoir python3 et pip d'instalé.
+Assurez-vous d'avoir télécharger le code source dans un dossier et d'avoir python3 et pip d’installé.
 
 Ensuite installer les dépendances avec
 ```shell
@@ -25,35 +25,34 @@ pip install -r requirements.txt
 > [!WARNING]
 > Il est requis d'utiliser cette application avec une bonne connection.
 
-L'aplication est compatible avec toutes les plateformes de [ytb-dlp](https://github.com/yt-dlp/yt-dlp).
+L’application est compatible avec toutes les plateformes de [ytb-dlp](https://github.com/yt-dlp/yt-dlp).
 
 ### Ajouter des vidéos.
 
 Sur le premier écran de l'application, vous pouvez ajouter des URLs de vidéos dans la zone de texte prévus à cette effet.
-Après avoir valider et attendus quelques instants, la vidéo apparait dans la liste. vous pouvez la suprimer, en ajouter d'autre ou passer à l'étape suivante. Vous pouvez aussi ajouter une playlist.
+Après avoir valider et attendus quelques instants, la vidéo apparaît dans la liste. vous pouvez la supprimer, en ajouter d'autre ou passer à l'étape suivante. Vous pouvez aussi ajouter une playlist.
 
 ### Choix du profil
 
-Une fois que vous avez appuyer sur le boutton `Choisir le profil de téléchargement`, pour chaque vidéo, vous pouvez choisir un des trois profils : `Best audio`, `Best vidéo` ou `Best Vidéo under 1080p`.
-Dans les version future, d'autre profils et la posibilité d'en créer sois même seras implémenté.
+Une fois que vous avez appuyer sur le bouton `Choisir le profil de téléchargement`, pour chaque vidéo, vous pouvez choisir un des trois profils : `Best audio`, `Best vidéo` ou `Best Vidéo under 1080p`.
+Dans les version future, d'autre profils et la possibilité d'en créer sois même seras implémenté.
 
 ### Téléchargement
 
-Une fois les profils choisi et le boutton `Téléchargement` préssé, deux barre de progression s'affiche :
-Une du téléchargement global et une de la vidéo actuelle.
+Une fois les profils choisi et le bouton `Téléchargement` activé, deux barre de progression s'affiche : une pour le téléchargement global et une pour le téléchargement de la vidéo actuelle.
 
 Une fois le téléchargement terminé, les téléchargement sont dans votre dossier Téléchargements
 
 > [!WARNING]
 > Comme la date du fichier est la date de l'upload sur youtube, il se peut qu'elle se retrouve à la fin de votre dossier téléchargement.
 
-### Languages
+### Langages
 
 Vous pouvez changer de langues dans le menu `Langues`.
 
 Une fois la langue choisi sélectionner, vous devez relancer l'application.
 
-Langues diponible :
+Langues disponibles :
 
 - Français
 - Anglais
@@ -64,7 +63,7 @@ Langues diponible :
 > [!CAUTION]
 > Seul les fonctions `__init__` et `getprofiles` fonctionent, l'autre utilisant tkinter, elle à temporairement été désactiver le temps de la redéveloper avec la nouvelle architecture & qt6.
 
-Pour l'instant, cet outils permet seulement de suprimer les profils.
+Pour l'instant, cet outils permet seulement de supprimer les profils.
 
 ## Explication du code
 
@@ -83,7 +82,7 @@ Classe qui permet de gérer les logs. Elle contient 4 fonction :
 
 #### `__init__(self)` : Initialise les logs.
 
-Cette fonction crée le dossier {APPDATA}/log si il n'exsiste pas, elle crée à l'interieur le fichier "AAAA_MM_DD.log" si il n'exsiste pas et écrit dedant "[START] [AAA-MM-DD HH:MM:SS]".
+Cette fonction crée le dossier {APPDATA}/log si il n’existe pas, elle crée à l’intérieur le fichier "AAAA_MM_DD.log" si il n’existe pas et écrit dedans "[START] [AAA-MM-DD HH:MM:SS]".
 
 #### `info(self, message)`, `error(self, message)`, `warning(self, message)`
 
@@ -97,7 +96,7 @@ Elle affiche aussi `msg` dans la console, en rouge dans `ERROR` et en jaune dans
 ## Contribuer
 Vous pouvez librement contribuer, en codant ou en traduisant.
 Pour ce faire [ouvrez une pull request](https://github.com/Pythacode/yt-dlp-gui/pulls) ou [envoyez-moi un mail](mailto:contact+yt-dlp@nathanaelle.org) pour vous assurez que personne ne travaille sur la même chose que vous.
-Si vous voulez participer mais que vous ne savez pas quoi faire, lancez l'aplication et regardez par vous même, il reste beucoup à améliorer
+Si vous voulez participer mais que vous ne savez pas quoi faire, lancez l'application et regardez par vous même, il reste beaucoup à améliorer
 
 ## Crédits
 
